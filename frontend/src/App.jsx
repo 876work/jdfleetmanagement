@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Vehicles from "./pages/Vehicles";
 import AddVehicle from "./pages/AddVehicle";
@@ -12,11 +12,15 @@ import EditMaintenance from "./pages/EditMaintenance";
 import ArchivedInvoices from "./pages/invoices/ArchivedInvoices";
 import Dashboard from "./pages/Dashboard";
 import AddPartOrder from "./pages/AddPartOrder";
+import Register from "./pages/Register";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/signup" element={<Navigate to="/register" replace />} />
+      <Route path="/sign-up" element={<Navigate to="/register" replace />} />
       <Route
         path="/vehicles"
         element={

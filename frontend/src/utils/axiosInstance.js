@@ -2,8 +2,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  // baseURL: "http://localhost:3000",
-  baseURL: "https://vehicle-management-system-vms.onrender.com", // Backend on Render
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: false,
   timeout: import.meta.env.PROD ? 60000 : 15000, // 60s in prod, 15s in dev
 });

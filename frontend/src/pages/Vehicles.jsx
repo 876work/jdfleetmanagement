@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
@@ -17,6 +17,9 @@ export default function Vehicles() {
   const [error, setError] = useState("");
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [ownerFilter, setOwnerFilter] = useState("");
 
 
   const navigate = useNavigate();
@@ -84,6 +87,38 @@ export default function Vehicles() {
     }
   };
 
+  const statusOptions = useMemo(() => (
+    [...new Set(vehicles.map(v => (v.status || "active").trim()).filter(Boolean))].sort()
+  ), [vehicles]);
+
+  const filteredVehicles = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+
+    return vehicles.filter((vehicle) => {
+      const ownerName = [vehicle.ownerId?.firstName, vehicle.ownerId?.lastName].filter(Boolean).join(" ");
+      const searchableText = [
+        vehicle.name,
+        vehicle.plateNumber,
+        vehicle.brand,
+        vehicle.model,
+        ownerName,
+        vehicle.categoryId?.name,
+        vehicle.status || "active",
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      const matchesSearch = term ? searchableText.includes(term) : true;
+      const matchesStatus = statusFilter ? (vehicle.status || "active") === statusFilter : true;
+      const matchesOwner = ownerFilter ? vehicle.ownerId?._id === ownerFilter : true;
+
+      return matchesSearch && matchesStatus && matchesOwner;
+    });
+  }, [vehicles, searchTerm, statusFilter, ownerFilter]);
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("");
+    setOwnerFilter("");
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -101,13 +136,45 @@ export default function Vehicles() {
 
       {error && <p className="text-brand-error mb-4">{error}</p>}
 
+      <div className="mb-6 rounded-xl border border-brand-border bg-white p-4 shadow-sm">
+        <div className="grid gap-3 md:grid-cols-3">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search vehicle, plate, owner..."
+            className="w-full rounded border p-2"
+          />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full rounded border p-2">
+            <option value="">All Statuses</option>
+            {statusOptions.map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+          <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} className="w-full rounded border p-2">
+            <option value="">All Owners</option>
+            {owners.map(owner => (
+              <option key={owner._id} value={owner._id}>{owner.firstName} {owner.lastName}</option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-3 flex items-center justify-between text-sm text-brand-slate">
+          <span>Showing {filteredVehicles.length} of {vehicles.length} vehicles</span>
+          <button type="button" onClick={resetFilters} className="text-brand-navy hover:underline">Reset filters</button>
+        </div>
+      </div>
+
       {vehicles.length === 0 ? (
         <div className="rounded-xl border border-brand-border bg-white p-8 text-center text-brand-slate shadow-sm">
           No vehicles have been added yet.
         </div>
+      ) : filteredVehicles.length === 0 ? (
+        <div className="rounded-xl border border-brand-border bg-white p-8 text-center text-brand-slate shadow-sm">
+          No vehicles match the current search or filters.
+        </div>
       ) : (
       <ul className="space-y-4">
-        {vehicles.map((vehicle) => {
+        {filteredVehicles.map((vehicle) => {
           const isOpen = expandedId === vehicle._id;
           const owner = vehicle.ownerId;
           const category = vehicle.categoryId;

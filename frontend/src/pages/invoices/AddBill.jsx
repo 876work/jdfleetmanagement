@@ -14,6 +14,8 @@ const AddBill = () => {
             vehicle: '',
             date: new Date().toISOString().split("T")[0],
             services: [{ description: '', price: 0 }],
+            paymentStatus: 'unpaid',
+            notes: '',
         },
     });
 
@@ -65,6 +67,8 @@ const AddBill = () => {
                 totalPrice,
                 maintenanceId,
                 partsUsed: form.partsUsed,
+                paymentStatus: data.paymentStatus,
+                notes: data.notes,
             });
 
             toast.success('Invoice created successfully!');
@@ -115,6 +119,17 @@ const AddBill = () => {
                     />
                 </div>
 
+
+                {/* Payment Status */}
+                <div>
+                    <label className="block font-semibold mb-1">Payment Status:</label>
+                    <select {...register('paymentStatus')} className="w-full border p-2 rounded">
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
 
                 {/* Services Section */}
                 <div>
@@ -175,6 +190,17 @@ const AddBill = () => {
 
 
 
+
+                {/* Notes */}
+                <div>
+                    <label className="block font-semibold mb-1">Notes:</label>
+                    <textarea
+                        {...register('notes')}
+                        rows="3"
+                        className="w-full border p-2 rounded"
+                        placeholder="Optional invoice notes"
+                    />
+                </div>
 
                 {/* Total */}
                 <div className="font-bold text-lg">

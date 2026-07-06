@@ -5,7 +5,7 @@ import Part from "../models/Part.js";
 
 export const createBill = async (req, res) => {
     try {
-        const { customer, vehicle, services, date, maintenanceId, partsUsed = [] } = req.body;
+        const { customer, vehicle, services, date, maintenanceId, partsUsed = [], paymentStatus = "unpaid", notes = "" } = req.body;
         if (!services?.length) return res.status(400).json({ message: 'No services provided' });
 
         const totalPrice = services.reduce((sum, item) => sum + item.price, 0);
@@ -31,7 +31,7 @@ export const createBill = async (req, res) => {
         }
 
         const newBill = await Bill.create({
-            customer, vehicle, services, totalPrice, date, maintenanceId: maintenanceRef
+            customer, vehicle, services, totalPrice, date, maintenanceId: maintenanceRef, paymentStatus, notes
         });
         const populated = await Bill.findById(newBill._id)
             .populate('customer', 'firstName lastName')
@@ -50,7 +50,7 @@ export const getAllBills = async (req, res) => {
     try {
         const bills = await Bill.find({ archived: false })
             .populate('customer', 'firstName lastName')
-            .populate('vehicle', 'model plateNumber')
+            .populate('vehicle', 'brand model plateNumber')
             .populate({
                 path: 'maintenanceId',
                 populate: { path: 'partsUsed' }
@@ -82,7 +82,7 @@ export const getBillById = async (req, res) => {
 
 export const updateBill = async (req, res) => {
     try {
-        const { customer, vehicle, services = [], totalPrice, maintenanceId, partsUsed = [], date } = req.body;
+        const { customer, vehicle, services = [], totalPrice, maintenanceId, partsUsed = [], date, paymentStatus, notes } = req.body;
 
         // Prepare old/new parts arrays to compute inventory diff
         let oldParts = [];
@@ -109,7 +109,7 @@ export const updateBill = async (req, res) => {
 
         const updatedBill = await Bill.findByIdAndUpdate(
             req.params.id,
-            { customer, vehicle, services, totalPrice, ...(date ? { date } : {}) },
+            { customer, vehicle, services, totalPrice, ...(date ? { date } : {}), ...(paymentStatus ? { paymentStatus } : {}), ...(typeof notes === "string" ? { notes } : {}) },
             { new: true }
         );
 
@@ -198,7 +198,7 @@ export const getArchivedBills = async (req, res) => {
         console.log("📥 Request received for archived bills");
 
         const bills = await Bill.find({ archived: true })
-            .populate("vehicle", "model plateNumber")
+            .populate("vehicle", "brand model plateNumber")
             .populate("customer", "firstName lastName")
             .populate({
                 path: "maintenanceId",

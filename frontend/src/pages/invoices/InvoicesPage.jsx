@@ -28,7 +28,9 @@ export default function InvoicesPage() {
         const results = invoices.filter(inv =>
             inv.vehicle?.plateNumber?.toLowerCase().includes(term) ||
             `${inv.customer?.firstName} ${inv.customer?.lastName}`.toLowerCase().includes(term) ||
-            inv.description?.toLowerCase().includes(term)
+            inv.services?.some((srv) => srv.description?.toLowerCase().includes(term)) ||
+            (inv.paymentStatus || "unpaid").toLowerCase().includes(term) ||
+            inv.notes?.toLowerCase().includes(term)
         );
         setFiltered(results);
     };
@@ -40,7 +42,7 @@ export default function InvoicesPage() {
             <div className="mb-4">
                 <input
                     type="text"
-                    placeholder="Search by plate number, customer, description..."
+                    placeholder="Search by plate number, customer, service, status, or notes..."
                     value={search}
                     onChange={handleSearch}
                     className="w-full border p-2 rounded"
@@ -56,7 +58,9 @@ export default function InvoicesPage() {
                             <th className="p-3">Customer</th>
                             <th className="p-3">Date</th>
                             <th className="p-3">Amount (€)</th>
+                            <th className="p-3">Status</th>
                             <th className="p-3">Description</th>
+                            <th className="p-3">Notes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,21 +74,23 @@ export default function InvoicesPage() {
                                         : "—"}
                                 </td>
                                 <td className="p-3">{new Date(inv.date).toLocaleDateString()}</td>
-                                <td className="p-3">{inv.totalPrice.toLocaleString()} €</td>
+                                <td className="p-3">{Number(inv.totalPrice || 0).toLocaleString()} €</td>
+                                <td className="p-3 capitalize">{inv.paymentStatus || "unpaid"}</td>
                                 <td className="p-3">
                                     <ul className="list-disc pl-5 mt-2">
-                                        {inv.services.map((srv, idx) => (
+                                        {inv.services?.map((srv, idx) => (
                                             <li key={idx}>
-                                                {srv.description} — {srv.price.toLocaleString()} €
+                                                {srv.description} — {Number(srv.price || 0).toLocaleString()} €
                                             </li>
                                         ))}
                                     </ul>
                                 </td>
+                                <td className="p-3">{inv.notes || "—"}</td>
                             </tr>
                         ))}
                         {filtered.length === 0 && (
                             <tr>
-                                <td colSpan="6" className="text-center p-4 text-gray-400">
+                                <td colSpan="8" className="text-center p-4 text-gray-400">
                                     No results found
                                 </td>
                             </tr>

@@ -23,7 +23,9 @@ export default function InvoiceCard({
                         🚗 Vehicle: {bill.vehicle?.brand || "—"} {bill.vehicle?.model || "—"}{" "}
                         {bill.vehicle?.plateNumber ? `(${bill.vehicle.plateNumber})` : ""}
                     </div>
-                    <div>📅 Date: {new Date(bill.date).toLocaleDateString()}</div>
+                    <div>📅 Invoice Date: {new Date(bill.date).toLocaleDateString()}</div>
+                    <div>💳 Status: {(bill.paymentStatus || "unpaid").charAt(0).toUpperCase() + (bill.paymentStatus || "unpaid").slice(1)}</div>
+                    {bill.notes && <div className="mt-2 text-sm text-brand-slate">📝 Notes: {bill.notes}</div>}
                     <div className="mt-3">
                         <div className="font-semibold mb-1">Services:</div>
                         <ul className="list-disc pl-5 space-y-1 text-sm">
@@ -48,7 +50,7 @@ export default function InvoiceCard({
                     </div>
 
                     <div className="mt-3 font-bold text-right text-lg">
-                        💰 Total: €{Number(bill.totalPrice || 0).toLocaleString()}
+                        💰 Amount: €{Number(bill.totalPrice || 0).toLocaleString()}
                     </div>
                 </div>
 

@@ -8,6 +8,12 @@ const billSchema = new mongoose.Schema({
     services: [{ description: String, price: Number }],
     totalPrice: { type: Number, required: true },
     date: { type: Date, required: true, default: Date.now },
+    paymentStatus: {
+        type: String,
+        enum: ["unpaid", "paid", "overdue", "cancelled"],
+        default: "unpaid"
+    },
+    notes: { type: String, default: "" },
     archived: { type: Boolean, default: false }
 }, { timestamps: true });
 

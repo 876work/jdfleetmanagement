@@ -14,13 +14,14 @@ export default function InvoiceModal({ visible, onClose, invoice }) {
                         : "—"}
                 </p>
                 <p><strong>🚗 Vehicle:</strong> {invoice.vehicle?.brand} {invoice.vehicle?.model} ({invoice.vehicle?.plateNumber})</p>
-                <p><strong>📅 Date:</strong> {new Date(invoice.date).toLocaleDateString()}</p>
+                <p><strong>📅 Invoice Date:</strong> {new Date(invoice.date).toLocaleDateString()}</p>
+                <p><strong>💳 Status:</strong> {(invoice.paymentStatus || "unpaid").charAt(0).toUpperCase() + (invoice.paymentStatus || "unpaid").slice(1)}</p>
 
                 <div className="mt-4">
                     <h4 className="font-semibold mb-2">Services:</h4>
                     <ul className="list-disc pl-5 space-y-1 text-sm">
-                        {invoice.services.map((srv, idx) => (
-                            <li key={idx}>{srv.description} — €{srv.price.toLocaleString()}</li>
+                        {invoice.services?.map((srv, idx) => (
+                            <li key={idx}>{srv.description} — €{Number(srv.price || 0).toLocaleString()}</li>
                         ))}
                     </ul>
                 </div>
@@ -38,7 +39,8 @@ export default function InvoiceModal({ visible, onClose, invoice }) {
 
                     </ul>
                 </div>
-                <p className="mt-4 font-bold text-right text-lg">💰 Total: €{invoice.totalPrice.toLocaleString()}</p>
+                {invoice.notes && <p className="mt-4"><strong>Notes:</strong> {invoice.notes}</p>}
+                <p className="mt-4 font-bold text-right text-lg">💰 Amount: €{Number(invoice.totalPrice || 0).toLocaleString()}</p>
 
                 <div className="flex justify-end mt-6">
                     <button

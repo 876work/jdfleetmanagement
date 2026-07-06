@@ -3,8 +3,11 @@ import MaintenanceRecord from '../models/MaintenanceRecord.js';
 //import Vehicle from '../models/Vehicle.js';
 import Part from "../models/Part.js";
 import { isNonEmptyString, isValidObjectId, publicErrorMessage } from "../utils/validation.js";
+import { denyStaff, isStaff } from "../utils/permissions.js";
 
 const PAYMENT_STATUSES = ["unpaid", "paid", "overdue", "cancelled"];
+const LOCKED_INVOICE_STATUSES = ["paid", "cancelled"];
+const totalsEqual = (a, b) => Number(a || 0).toFixed(2) === Number(b || 0).toFixed(2);
 
 const validateBillPayload = ({ customer, vehicle, services = [], date, paymentStatus = "unpaid" }) => {
     if (!isValidObjectId(customer)) return "Select a valid customer.";
@@ -20,6 +23,9 @@ const validateBillPayload = ({ customer, vehicle, services = [], date, paymentSt
 export const createBill = async (req, res) => {
     try {
         const { customer, vehicle, services, date, maintenanceId, partsUsed = [], paymentStatus = "unpaid", notes = "" } = req.body;
+        if (isStaff(req) && paymentStatus !== "unpaid") {
+            return denyStaff(res, 'Staff users can only create draft or unpaid invoices.');
+        }
         const validationError = validateBillPayload({ customer, vehicle, services, date, paymentStatus });
         if (validationError) return res.status(400).json({ message: validationError });
 
@@ -104,6 +110,20 @@ export const updateBill = async (req, res) => {
         const cleanServices = services.map((item) => ({ description: item.description.trim(), price: Number(item.price) }));
         const totalPrice = cleanServices.reduce((sum, item) => sum + item.price, 0);
 
+        if (isStaff(req)) {
+            const currentBill = await Bill.findById(req.params.id).lean();
+            if (!currentBill) return res.status(404).json({ message: 'Bill not found' });
+            if (currentBill.archived || LOCKED_INVOICE_STATUSES.includes(currentBill.paymentStatus)) {
+                return denyStaff(res, 'Staff users cannot edit paid, cancelled, or archived invoices.');
+            }
+            if (paymentStatus === 'paid' && currentBill.paymentStatus !== 'paid') {
+                return denyStaff(res, 'Staff users cannot mark invoices as paid.');
+            }
+            if (!totalsEqual(currentBill.totalPrice, totalPrice)) {
+                return denyStaff(res, 'Staff users cannot change invoice amounts after creation.');
+            }
+        }
+
         // Prepare old/new parts arrays to compute inventory diff
         let oldParts = [];
         let newParts = [];
@@ -181,6 +201,7 @@ export const updateBill = async (req, res) => {
 
 export const deleteBill = async (req, res) => {
     try {
+        if (isStaff(req)) return denyStaff(res, 'Staff users cannot delete invoices.');
         const bill = await Bill.findByIdAndDelete(req.params.id);
         if (!bill) {
             return res.status(404).json({ message: 'Bill not found' });
@@ -237,6 +258,7 @@ export const getArchivedBills = async (req, res) => {
 // PATCH /api/bills/:id/archive
 export const archiveBill = async (req, res) => {
     try {
+        if (isStaff(req)) return denyStaff(res, 'Staff users cannot archive invoices.');
         const updated = await Bill.findByIdAndUpdate(req.params.id, { archived: true }, { new: true });
         if (!updated) return res.status(404).json({ message: "Bill not found" });
         res.json(updated);

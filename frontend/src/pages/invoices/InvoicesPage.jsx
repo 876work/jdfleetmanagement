@@ -13,7 +13,7 @@ export default function InvoicesPage() {
             const res = await axios.get("/api/bills");
             setInvoices(res.data);
             setFiltered(res.data);
-        } catch (err) {
+        } catch {
             toast.error("Failed to fetch invoices");
         }
     };

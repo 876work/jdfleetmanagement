@@ -1,7 +1,6 @@
 // src/pages/Login.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-//(points to Render in production)
 import api from "../utils/axiosInstance";
 import { getApiErrorMessage } from "../utils/errorMessages";
 import { useAuth } from "../context/useAuth";
@@ -27,8 +26,7 @@ function Login() {
     setMessage("");
 
     try {
-      //const res = await axios.post("http://localhost:3000/api/auth/login", {
-      // Call  backend via the shared axios instance (relative path)
+      // Call the backend via the shared axios instance.
       const res = await api.post("/api/auth/login", {
         username,
         passwordHash,

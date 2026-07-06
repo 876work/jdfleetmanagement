@@ -1,61 +1,64 @@
 import Customer from '../models/Customer.js';
+import { isNonEmptyString, isValidEmail, sendValidationError, publicErrorMessage } from '../utils/validation.js';
 
-// Create a new customer
+const validateCustomer = (body) => {
+  const fields = {};
+  if (!isNonEmptyString(body.firstName)) fields.firstName = 'First name is required.';
+  if (!isNonEmptyString(body.lastName)) fields.lastName = 'Last name is required.';
+  if (!isNonEmptyString(body.phone)) fields.phone = 'Phone number is required.';
+  if (!isValidEmail(body.email)) fields.email = 'Enter a valid email address.';
+  if (!isNonEmptyString(body.address)) fields.address = 'Address is required.';
+  return fields;
+};
+
+const cleanCustomerPayload = (body) => ({
+  firstName: body.firstName?.trim(),
+  lastName: body.lastName?.trim(),
+  phone: body.phone?.trim(),
+  email: body.email?.trim().toLowerCase(),
+  address: body.address?.trim()
+});
+
 export const createCustomer = async (req, res) => {
   try {
-    const customer = new Customer(req.body);
-    const saved = await customer.save();
+    const fields = validateCustomer(req.body);
+    if (Object.keys(fields).length) return sendValidationError(res, 'Please fix the highlighted customer fields.', fields);
+    const saved = await new Customer(cleanCustomerPayload(req.body)).save();
     res.status(201).json(saved);
   } catch (err) {
-    console.error('Error creating customer:', err);
-
-    if (err.code === 11000 && err.keyPattern?.email) {
-      return res.status(400).json({ message: 'Email already exists' });
-    }
-
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(400).json({ message: publicErrorMessage(err, 'Customer could not be saved. Please check the form and try again.') });
   }
 };
 
-// Get all customers
 export const getAllCustomers = async (req, res) => {
-  try {
-    const customers = await Customer.find();
-    res.status(200).json(customers);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
+  try { res.status(200).json(await Customer.find()); }
+  catch { res.status(500).json({ message: 'Unable to load customers. Please try again.' }); }
 };
 
-// Get customer by ID
 export const getCustomerById = async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.id);
-    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!customer) return res.status(404).json({ message: 'Customer not found.' });
     res.status(200).json(customer);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
+  } catch { res.status(400).json({ message: 'Invalid customer identifier.' }); }
 };
 
-// Update customer
 export const updateCustomer = async (req, res) => {
   try {
-    const updated = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: 'Customer not found' });
+    const fields = validateCustomer(req.body);
+    if (Object.keys(fields).length) return sendValidationError(res, 'Please fix the highlighted customer fields.', fields);
+    const updated = await Customer.findByIdAndUpdate(req.params.id, cleanCustomerPayload(req.body), { new: true, runValidators: true });
+    if (!updated) return res.status(404).json({ message: 'Customer not found.' });
     res.status(200).json(updated);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(400).json({ message: publicErrorMessage(err, 'Customer could not be updated. Please check the form and try again.') });
   }
 };
 
-// Delete customer
 export const deleteCustomer = async (req, res) => {
   try {
     const deleted = await Customer.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Customer not found' });
-    res.status(200).json({ message: 'Customer deleted' });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
+    if (!deleted) return res.status(404).json({ message: 'Customer not found.' });
+    res.status(200).json({ message: 'Customer deleted.' });
+  } catch { res.status(400).json({ message: 'Invalid customer identifier.' }); }
 };

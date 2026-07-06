@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
+import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
 import { useParams } from "react-router-dom";
 
@@ -42,7 +43,7 @@ const AddBill = () => {
                 setVehicles(vehRes.data);
                 setAvailableParts(partsRes.data);
             } catch (err) {
-                toast.error('Failed to load customers or vehicles: ' + err.message);
+                toast.error(getApiErrorMessage(err, 'Failed to load invoice form data. Please try again.'));
             }
         };
 
@@ -55,9 +56,13 @@ const AddBill = () => {
     const onSubmit = async (data) => {
         try {
             const cleanedServices = data.services.map((s) => ({
-                description: s.description,
+                description: s.description?.trim(),
                 price: parseFloat(s.price.toString().replace(',', '.')) || 0,
             }));
+            if (!data.customer || !data.vehicle || !data.date || cleanedServices.some((s) => !s.description || s.price < 0)) {
+                toast.error('Select a customer, vehicle, date, and enter valid service descriptions and prices.');
+                return;
+            }
 
             await axiosInstance.post('/api/bills', {
                 customer: data.customer,
@@ -75,7 +80,7 @@ const AddBill = () => {
             reset();
             navigate('/invoices');
         } catch (err) {
-            toast.error('Failed to submit invoice: ' + err.message);
+            toast.error(getApiErrorMessage(err, 'Invoice could not be created. Please check the form and try again.'));
         }
     };
 

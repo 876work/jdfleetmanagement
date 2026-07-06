@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance";
+import { getApiErrorMessage } from "../utils/errorMessages";
 
 export default function AddPartOrder() {
     // Get part id from route params
@@ -42,7 +43,7 @@ export default function AddPartOrder() {
             // Navigate to a suitable page after success
             navigate("/invoices"); // change if you want another page
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to order part");
+            setError(getApiErrorMessage(err, "Part order could not be saved. Please check the form and try again."));
         } finally {
             setLoading(false);
         }

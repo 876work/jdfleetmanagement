@@ -20,18 +20,23 @@ export default function OwnerModal({ visible, onClose, onSave, existingOwners = 
     const handleSave = () => {
         setError("");
 
-        if (!form.firstName.trim() || !form.email.trim() || !form.phone.trim() || !form.address.trim()) {
-            setError("Please fill all required fields.");
+        if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.phone.trim() || !form.address.trim()) {
+            setError("First name, last name, phone, email, and address are required.");
             return;
         }
 
-        const duplicateEmail = existingOwners.some(owner => owner.email === form.email);
+        if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+            setError("Enter a valid email address.");
+            return;
+        }
+
+        const duplicateEmail = existingOwners.some(owner => owner.email?.toLowerCase() === form.email.trim().toLowerCase());
         if (duplicateEmail) {
-            setError("❌This email is already in use.");
+            setError("This email is already in use.");
             return;
         }
 
-        onSave(form);
+        onSave({ ...form, email: form.email.trim().toLowerCase() });
         setForm({ firstName: "", lastName: "", phone: "", email: "", address: "" });
     };
 
@@ -56,6 +61,7 @@ export default function OwnerModal({ visible, onClose, onSave, existingOwners = 
                     value={form.lastName}
                     onChange={handleChange}
                     className="w-full border px-3 py-2 rounded mb-2"
+                    required
                 />
                 <input
                     name="phone"

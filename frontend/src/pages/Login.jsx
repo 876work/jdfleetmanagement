@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 //(points to Render in production)
 import api from "../utils/axiosInstance";
+import { getApiErrorMessage } from "../utils/errorMessages";
 import { useAuth } from "../context/useAuth";
 
 function Login() {
@@ -41,7 +42,7 @@ function Login() {
       setMessage("✅ Login successful!");
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setMessage("❌ Login failed: " + (err.response?.data?.message || err.message));
+      setMessage("❌ " + getApiErrorMessage(err, "Login failed. Please check your username and password."));
     }
   };
 

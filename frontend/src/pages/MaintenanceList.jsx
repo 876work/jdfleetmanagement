@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axiosInstance";
 //import { AnimatePresence, motion } from "framer-motion";
 import ConfirmModal from "../components/ConfirmModal";
@@ -19,6 +19,9 @@ export default function MaintenanceList() {
     const navigate = useNavigate();
     const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+    const [vehicleFilter, setVehicleFilter] = useState("");
 
     const fetchRecords = async () => {
         try {
@@ -47,6 +50,41 @@ export default function MaintenanceList() {
         setExpandedId(prev => (prev === id ? null : id));
     };
 
+    const statusOptions = useMemo(() => (
+        [...new Set(records.map(record => (record.status || "completed").trim()).filter(Boolean))].sort()
+    ), [records]);
+
+    const filteredRecords = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
+
+        return records.filter((record) => {
+            const vehicle = record.vehicleId;
+            const searchableText = [
+                vehicle?.name,
+                vehicle?.brand,
+                vehicle?.model,
+                vehicle?.plateNumber,
+                record.maintenanceType || "General Maintenance",
+                record.status || "completed",
+                record.vendorName,
+                record.notes,
+                ...(record.partsUsed || []).map(part => part.name),
+            ].filter(Boolean).join(" ").toLowerCase();
+
+            const matchesSearch = term ? searchableText.includes(term) : true;
+            const matchesStatus = statusFilter ? (record.status || "completed") === statusFilter : true;
+            const matchesVehicle = vehicleFilter ? vehicle?._id === vehicleFilter : true;
+
+            return matchesSearch && matchesStatus && matchesVehicle;
+        });
+    }, [records, searchTerm, statusFilter, vehicleFilter]);
+
+    const resetFilters = () => {
+        setSearchTerm("");
+        setStatusFilter("");
+        setVehicleFilter("");
+    };
+
     const handleDelete = async () => {
         try {
             await axios.delete(`/api/maintenance/${recordToDelete._id}`);
@@ -66,6 +104,37 @@ export default function MaintenanceList() {
         <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-3xl font-bold text-center mb-8">🛠️ Maintenance Records</h1>
 
+
+            <div className="mb-6 rounded-xl border border-brand-border bg-white p-4 shadow-sm">
+                <div className="grid gap-3 md:grid-cols-3">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search plate, vehicle, type, vendor..."
+                        className="w-full rounded border p-2"
+                    />
+                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full rounded border p-2">
+                        <option value="">All Statuses</option>
+                        {statusOptions.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
+                    <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)} className="w-full rounded border p-2">
+                        <option value="">All Vehicles</option>
+                        {vehicles.map(vehicle => (
+                            <option key={vehicle._id} value={vehicle._id}>
+                                {vehicle.name || `${vehicle.brand} ${vehicle.model}`} - {vehicle.plateNumber}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-sm text-brand-slate">
+                    <span>Showing {filteredRecords.length} of {records.length} maintenance records</span>
+                    <button type="button" onClick={resetFilters} className="text-brand-navy hover:underline">Reset filters</button>
+                </div>
+            </div>
+
             <div className="flex justify-end mb-6">
                 <button
                     onClick={() => setShowModal(true)}
@@ -75,8 +144,13 @@ export default function MaintenanceList() {
                 </button>
             </div>
 
+            {filteredRecords.length === 0 ? (
+                <div className="rounded-xl border border-brand-border bg-white p-8 text-center text-brand-slate shadow-sm">
+                    No maintenance records match the current search or filters.
+                </div>
+            ) : (
             <ul className="space-y-4">
-                {records.map(record => {
+                {filteredRecords.map(record => {
                     const isOpen = expandedId === record._id;
                     const vehicle = record.vehicleId;
 
@@ -166,6 +240,7 @@ export default function MaintenanceList() {
                     );
                 })}
             </ul>
+            )}
 
             {/* Add Modal */}
             <AddMaintenanceModal

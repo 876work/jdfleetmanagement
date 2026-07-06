@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,8 @@ const InvoiceList = () => {
     const [loading, setLoading] = useState(true);
     const [selectedCustomer, setSelectedCustomer] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
     const [printBill, setPrintBill] = useState(null);
     const printRef = useRef();
     const navigate = useNavigate();
@@ -47,11 +49,40 @@ const InvoiceList = () => {
         fetchData();
     }, []);
 
-    const filteredBills = bills.filter((bill) => {
-        const matchCustomer = selectedCustomer ? bill.customer?._id === selectedCustomer : true;
-        const matchVehicle = selectedVehicle ? bill.vehicle?._id === selectedVehicle : true;
-        return matchCustomer && matchVehicle;
-    });
+    const statusOptions = useMemo(() => (
+        [...new Set(bills.map((bill) => (bill.paymentStatus || 'unpaid').trim()).filter(Boolean))].sort()
+    ), [bills]);
+
+    const filteredBills = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
+
+        return bills.filter((bill) => {
+            const customerName = [bill.customer?.firstName, bill.customer?.lastName].filter(Boolean).join(' ');
+            const vehicleName = [bill.vehicle?.name, bill.vehicle?.brand, bill.vehicle?.model, bill.vehicle?.plateNumber].filter(Boolean).join(' ');
+            const searchableText = [
+                customerName,
+                vehicleName,
+                bill.paymentStatus || 'unpaid',
+                bill.notes,
+                ...(bill.services || []).map((srv) => srv.description),
+                ...(bill.maintenanceId?.partsUsed || []).map((part) => part.name),
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            const matchCustomer = selectedCustomer ? bill.customer?._id === selectedCustomer : true;
+            const matchVehicle = selectedVehicle ? bill.vehicle?._id === selectedVehicle : true;
+            const matchStatus = selectedStatus ? (bill.paymentStatus || 'unpaid') === selectedStatus : true;
+            const matchSearch = term ? searchableText.includes(term) : true;
+
+            return matchCustomer && matchVehicle && matchStatus && matchSearch;
+        });
+    }, [bills, searchTerm, selectedCustomer, selectedStatus, selectedVehicle]);
+
+    const resetFilters = () => {
+        setSearchTerm('');
+        setSelectedCustomer('');
+        setSelectedVehicle('');
+        setSelectedStatus('');
+    };
 
     const handleArchive = async (id) => {
         const confirmed = window.confirm('Are you sure you want to archive this invoice?');
@@ -74,24 +105,44 @@ const InvoiceList = () => {
         <div className="p-6 max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-center mb-10"> 🧾 Fleet Invoices</h1>
 
-            <div className="flex gap-4 mb-6">
-                <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="border p-2 rounded w-1/2">
-                    <option value="">All Customers</option>
-                    {customers.map((cust) => (
-                        <option key={cust._id} value={cust._id}>{cust.firstName} {cust.lastName}</option>
-                    ))}
-                </select>
+            <div className="mb-6 rounded-xl border border-brand-border bg-white p-4 shadow-sm">
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search customer, vehicle, plate, service, status, or parts..."
+                    className="mb-3 w-full rounded border p-2"
+                />
+                <div className="grid gap-3 md:grid-cols-3">
+                    <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="border p-2 rounded w-full">
+                        <option value="">All Customers</option>
+                        {customers.map((cust) => (
+                            <option key={cust._id} value={cust._id}>{cust.firstName} {cust.lastName}</option>
+                        ))}
+                    </select>
 
-                <select value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)} className="border p-2 rounded w-1/2">
-                    <option value="">All Vehicles</option>
-                    {vehicles.map((veh) => (
-                        <option key={veh._id} value={veh._id}>{veh.model} - {veh.plateNumber}</option>
-                    ))}
-                </select>
+                    <select value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)} className="border p-2 rounded w-full">
+                        <option value="">All Vehicles</option>
+                        {vehicles.map((veh) => (
+                            <option key={veh._id} value={veh._id}>{veh.name || veh.model} - {veh.plateNumber}</option>
+                        ))}
+                    </select>
+
+                    <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="border p-2 rounded w-full">
+                        <option value="">All Invoice Statuses</option>
+                        {statusOptions.map((status) => (
+                            <option key={status} value={status}>{formatStatus(status)}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-sm text-brand-slate">
+                    <span>Showing {filteredBills.length} of {bills.length} invoices</span>
+                    <button type="button" onClick={resetFilters} className="text-brand-navy hover:underline">Reset filters</button>
+                </div>
             </div>
 
             <div className="flex justify-between items-center mb-6">
-                <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-navy" onClick={() => { setSelectedCustomer(''); setSelectedVehicle(''); }}>Reset Filters</button>
+                <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-navy" onClick={resetFilters}>Reset Filters</button>
                 <button className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success" onClick={() => navigate('/add-bill')}> ➕ Add Invoice</button>
             </div>
 

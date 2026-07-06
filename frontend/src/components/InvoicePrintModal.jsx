@@ -1,28 +1,20 @@
 import React, { forwardRef } from "react";
+import InvoiceDocument from "./InvoiceDocument";
 
 const InvoicePrintModal = forwardRef(({ bill, onCancel, onConfirm }, ref) => {
     if (!bill) return null;
 
     return (
-        <div ref={ref} className="bg-white p-6 rounded shadow max-w-xl mx-auto text-gray-800 print:block print:shadow-none">
-            <h2 className="text-xl font-bold mb-4">🧾 Invoice Preview</h2>
-            <p><strong>Customer:</strong> {bill.customer?.firstName} {bill.customer?.lastName}</p>
-            <p><strong>Vehicle:</strong> {bill.vehicle?.model} – {bill.vehicle?.plateNumber}</p>
-            <p><strong>Invoice Date:</strong> {new Date(bill.date).toLocaleDateString()}</p>
-            <p><strong>Payment Status:</strong> {(bill.paymentStatus || "unpaid").charAt(0).toUpperCase() + (bill.paymentStatus || "unpaid").slice(1)}</p>
-            <p><strong>Amount:</strong> {Number(bill.totalPrice || 0).toLocaleString()} €</p>
-            {bill.notes && <p><strong>Notes:</strong> {bill.notes}</p>}
-
-            <ul className="mt-3 list-disc ml-6">
-                {bill.services?.map((srv, idx) => (
-                    <li key={idx}>{srv.description} — {Number(srv.price || 0).toLocaleString()} €</li>
-                ))}
-            </ul>
-
-            <div className="flex justify-end gap-3 mt-6 no-print">
-                <button onClick={onCancel} className="btn-gray">❌ Cancel</button>
-                <button onClick={onConfirm} className="btn-blue">🖨️ Print</button>
-            </div>
+        <div ref={ref} className="invoice-print-surface bg-white p-4 print:p-0">
+            <InvoiceDocument
+                invoice={bill}
+                actions={
+                    <div className="flex flex-col justify-end gap-3 sm:flex-row">
+                        <button onClick={onCancel} className="btn-secondary">Cancel</button>
+                        <button onClick={onConfirm} className="btn-primary">Print</button>
+                    </div>
+                }
+            />
         </div>
     );
 });

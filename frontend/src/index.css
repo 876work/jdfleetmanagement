@@ -55,3 +55,53 @@ a {
   .app-table th { @apply whitespace-nowrap bg-brand-soft px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-brand-deep; }
   .app-table td { @apply whitespace-nowrap px-4 py-3 text-brand-slate; }
 }
+
+@media print {
+  @page {
+    margin: 0.5in;
+    size: auto;
+  }
+
+  html,
+  body,
+  #root {
+    background: #ffffff !important;
+  }
+
+  nav,
+  aside,
+  header.app-header,
+  .app-sidebar,
+  .app-nav,
+  .page-header,
+  .no-print,
+  button,
+  [role="navigation"] {
+    display: none !important;
+  }
+
+  .app-shell,
+  .app-container {
+    background: #ffffff !important;
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .invoice-document {
+    color: #111827 !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .invoice-document table,
+  .invoice-document tr,
+  .invoice-document td,
+  .invoice-document th {
+    page-break-inside: avoid;
+  }
+}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
+import { formatXcd } from '../../components/InvoiceDocument';
 import { useParams } from "react-router-dom";
 
 const AddBill = () => {
@@ -209,7 +210,7 @@ const AddBill = () => {
 
                 {/* Total */}
                 <div className="font-bold text-lg">
-                    Total: {totalPrice.toLocaleString()} €
+                    Total: {formatXcd(totalPrice)}
                 </div>
 
                 {/* Buttons */}

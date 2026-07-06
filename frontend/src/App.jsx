@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import AddPartOrder from "./pages/AddPartOrder";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
+import Tracking from "./pages/Tracking";
 import { useAuth } from "./context/useAuth";
 import { isAdmin } from "./utils/permissions";
 
@@ -44,6 +45,15 @@ function App() {
         element={
           <ProtectedRoute>
             <AddVehicle />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/tracking"
+        element={
+          <ProtectedRoute>
+            {auth?.user?.role === "admin" || auth?.user?.role === "staff" ? <Tracking /> : <Navigate to="/dashboard" replace />}
           </ProtectedRoute>
         }
       />

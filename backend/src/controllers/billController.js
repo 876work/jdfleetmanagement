@@ -2,13 +2,29 @@ import Bill from '../models/Bill.js';
 import MaintenanceRecord from '../models/MaintenanceRecord.js';
 //import Vehicle from '../models/Vehicle.js';
 import Part from "../models/Part.js";
+import { isNonEmptyString, isValidObjectId, publicErrorMessage } from "../utils/validation.js";
+
+const PAYMENT_STATUSES = ["unpaid", "paid", "overdue", "cancelled"];
+
+const validateBillPayload = ({ customer, vehicle, services = [], date, paymentStatus = "unpaid" }) => {
+    if (!isValidObjectId(customer)) return "Select a valid customer.";
+    if (!isValidObjectId(vehicle)) return "Select a valid vehicle.";
+    if (date && Number.isNaN(Date.parse(date))) return "Enter a valid invoice date.";
+    if (!PAYMENT_STATUSES.includes(paymentStatus)) return "Payment status must be unpaid, paid, overdue, or cancelled.";
+    if (!Array.isArray(services) || services.length === 0) return "Add at least one service to the invoice.";
+    if (services.some((item) => !isNonEmptyString(item.description))) return "Each invoice service needs a description.";
+    if (services.some((item) => Number.isNaN(Number(item.price)) || Number(item.price) < 0)) return "Service prices must be non-negative numbers.";
+    return null;
+};
 
 export const createBill = async (req, res) => {
     try {
         const { customer, vehicle, services, date, maintenanceId, partsUsed = [], paymentStatus = "unpaid", notes = "" } = req.body;
-        if (!services?.length) return res.status(400).json({ message: 'No services provided' });
+        const validationError = validateBillPayload({ customer, vehicle, services, date, paymentStatus });
+        if (validationError) return res.status(400).json({ message: validationError });
 
-        const totalPrice = services.reduce((sum, item) => sum + item.price, 0);
+        const cleanServices = services.map((item) => ({ description: item.description.trim(), price: Number(item.price) }));
+        const totalPrice = cleanServices.reduce((sum, item) => sum + item.price, 0);
 
 
         let maintenanceRef = maintenanceId;
@@ -18,7 +34,7 @@ export const createBill = async (req, res) => {
             const newMaint = await MaintenanceRecord.create({
                 vehicleId: vehicle,
                 serviceDate: date || new Date(),
-                services: services.map(s => ({ description: s.description, cost: s.price })),
+                services: cleanServices.map(s => ({ description: s.description, cost: s.price })),
                 partsUsed
             });
             maintenanceRef = newMaint._id;
@@ -31,7 +47,7 @@ export const createBill = async (req, res) => {
         }
 
         const newBill = await Bill.create({
-            customer, vehicle, services, totalPrice, date, maintenanceId: maintenanceRef, paymentStatus, notes
+            customer, vehicle, services: cleanServices, totalPrice, date: date || new Date(), maintenanceId: maintenanceRef, paymentStatus, notes
         });
         const populated = await Bill.findById(newBill._id)
             .populate('customer', 'firstName lastName')
@@ -41,7 +57,7 @@ export const createBill = async (req, res) => {
         res.status(201).json(populated);
     } catch (err) {
         console.error('❌ Create Bill Error:', err);
-        res.status(500).json({ message: 'Failed to create bill', error: err.message });
+        res.status(400).json({ message: publicErrorMessage(err, 'Invoice could not be created. Please check the form and try again.') });
     }
 };
 
@@ -82,7 +98,11 @@ export const getBillById = async (req, res) => {
 
 export const updateBill = async (req, res) => {
     try {
-        const { customer, vehicle, services = [], totalPrice, maintenanceId, partsUsed = [], date, paymentStatus, notes } = req.body;
+        const { customer, vehicle, services = [], maintenanceId, partsUsed = [], date, paymentStatus = "unpaid", notes } = req.body;
+        const validationError = validateBillPayload({ customer, vehicle, services, date, paymentStatus });
+        if (validationError) return res.status(400).json({ message: validationError });
+        const cleanServices = services.map((item) => ({ description: item.description.trim(), price: Number(item.price) }));
+        const totalPrice = cleanServices.reduce((sum, item) => sum + item.price, 0);
 
         // Prepare old/new parts arrays to compute inventory diff
         let oldParts = [];
@@ -109,7 +129,7 @@ export const updateBill = async (req, res) => {
 
         const updatedBill = await Bill.findByIdAndUpdate(
             req.params.id,
-            { customer, vehicle, services, totalPrice, ...(date ? { date } : {}), ...(paymentStatus ? { paymentStatus } : {}), ...(typeof notes === "string" ? { notes } : {}) },
+            { customer, vehicle, services: cleanServices, totalPrice, ...(date ? { date } : {}), ...(paymentStatus ? { paymentStatus } : {}), ...(typeof notes === "string" ? { notes } : {}) },
             { new: true }
         );
 
@@ -120,7 +140,7 @@ export const updateBill = async (req, res) => {
                 maintenanceId,
                 {
                     ...(date ? { serviceDate: date } : {}),
-                    services: services.map(s => ({ description: s.description, cost: s.price })),
+                    services: cleanServices.map(s => ({ description: s.description, cost: s.price })),
                     partsUsed
                 },
                 { new: true }
@@ -155,7 +175,7 @@ export const updateBill = async (req, res) => {
         res.json(populated);
     } catch (err) {
         console.error('Update Bill Error:', err);
-        res.status(500).json({ message: 'Failed to update bill' });
+        res.status(400).json({ message: publicErrorMessage(err, 'Invoice could not be updated. Please check the form and try again.') });
     }
 };
 
@@ -189,7 +209,7 @@ export const getBillByMaintenanceId = async (req, res) => {
         res.json(bill);
     } catch (error) {
         console.error("❌ Error fetching bill by maintenanceId:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).json({ message: "Unable to load invoice. Please try again." });
     }
 };
 
@@ -205,12 +225,12 @@ export const getArchivedBills = async (req, res) => {
                 populate: { path: "partsUsed" }
             });
 
-        console.log("✅ Bills found:", bills);
+        console.log("Archived bills fetched:", bills.length);
 
         res.json(bills);
     } catch (err) {
         console.error("❌ Error fetching archived bills:", err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: "Unable to load archived invoices. Please try again." });
     }
 };
 
@@ -238,6 +258,6 @@ export const getRecentBills = async (req, res) => {
         res.json(bills);
     } catch (err) {
         console.error("❌ Error fetching recent bills:", err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.status(500).json({ message: "Unable to load recent invoices. Please try again." });
     }
 };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance";
+import { getApiErrorMessage } from "../utils/errorMessages";
 
 export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles }) {
     const defaultForm = {
@@ -25,7 +26,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
                 const res = await axios.get("/api/parts");
                 setAvailableParts(res.data);
             } catch (err) {
-                console.error("❌ Failed to load parts:", err);
+                setErrorMessage(getApiErrorMessage(err, "Parts could not be loaded. You can still save maintenance without parts."));
             }
         };
         fetchParts();
@@ -61,8 +62,15 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
 
     const handleSubmit = async () => {
         if (!form.vehicleId || !form.serviceDate || form.services.length === 0) {
-            console.log("📤 Data to submit:", form);
             setErrorMessage("Please select a vehicle, choose a date, and add at least one service.");
+            return;
+        }
+        if (form.services.some((service) => !service.description?.trim() || Number.isNaN(Number(service.cost)) || Number(service.cost) < 0)) {
+            setErrorMessage("Each service needs a description and a non-negative cost.");
+            return;
+        }
+        if (form.odometerReading !== "" && Number(form.odometerReading) < 0) {
+            setErrorMessage("Odometer reading must be a non-negative number.");
             return;
         }
 
@@ -72,8 +80,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
             setForm(defaultForm);
             onClose();
         } catch (err) {
-            console.error("❌ Failed to submit:", err);
-            setErrorMessage("Submission failed.");
+            setErrorMessage(getApiErrorMessage(err, "Maintenance record could not be saved. Please check the form and try again."));
         }
     };
 

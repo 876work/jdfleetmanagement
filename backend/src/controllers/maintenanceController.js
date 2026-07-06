@@ -2,6 +2,7 @@ import MaintenanceRecord from "../models/MaintenanceRecord.js";
 import Vehicle from "../models/Vehicle.js";
 import Bill from "../models/Bill.js";
 import Part from "../models/Part.js";
+import { isNonEmptyString, isValidObjectId, publicErrorMessage } from "../utils/validation.js";
 
 const VALID_MAINTENANCE_STATUSES = ["scheduled", "in progress", "completed", "cancelled"];
 
@@ -32,21 +33,23 @@ const normalizeMaintenancePayload = (body) => {
   };
 };
 
-const validateMaintenancePayload = ({ vehicleId, serviceDate, status, odometerReading, services }) => {
-  if (!vehicleId || !serviceDate || !services.length) {
-    return "vehicleId, serviceDate, and at least one service are required";
-  }
+const validateMaintenancePayload = ({ vehicleId, serviceDate, status, odometerReading, services, nextServiceDate }) => {
+  if (!isValidObjectId(vehicleId)) return "Select a valid vehicle.";
+  if (!serviceDate || Number.isNaN(Date.parse(serviceDate))) return "Enter a valid maintenance date.";
+  if (nextServiceDate && Number.isNaN(Date.parse(nextServiceDate))) return "Enter a valid next service date.";
+  if (!services.length) return "Add at least one service with a description and cost.";
+  if (services.some(service => !isNonEmptyString(service.description))) return "Each service needs a description.";
 
   if (!VALID_MAINTENANCE_STATUSES.includes(status)) {
-    return "status must be scheduled, in progress, completed, or cancelled";
+    return "Status must be scheduled, in progress, completed, or cancelled.";
   }
 
   if (odometerReading !== undefined && (Number.isNaN(odometerReading) || odometerReading < 0)) {
-    return "odometerReading must be a non-negative number";
+    return "Odometer reading must be a non-negative number.";
   }
 
   if (services.some(service => Number.isNaN(service.cost) || service.cost < 0)) {
-    return "service costs must be non-negative numbers";
+    return "Service costs must be non-negative numbers.";
   }
 
   return null;
@@ -99,12 +102,12 @@ export const createMaintenanceRecord = async (req, res) => {
     });
 
     await newBill.save();
-    console.log("✅ Auto-created invoice:", newBill._id);
+    console.log("Auto-created invoice:", newBill._id);
 
     res.status(201).json(populatedRecord);
   } catch (error) {
     console.error("❌ Error creating maintenance record & bill:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(400).json({ message: publicErrorMessage(error, "Maintenance record could not be saved. Please check the form and try again.") });
   }
 };
 
@@ -122,11 +125,11 @@ export const deleteMaintenance = async (req, res) => {
       { maintenanceId: req.params.id },
       { archived: true }
     );
-    console.log("🧾 Archived related invoice for maintenance:", req.params.id);
+    console.log("Archived related invoice for maintenance:", req.params.id);
     res.json({ message: "Maintenance deleted, and related invoice archived" });
   } catch (error) {
     console.error("❌ Error deleting maintenance:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Unable to delete maintenance record. Please try again." });
   }
 };
 
@@ -141,7 +144,7 @@ export const getAllMaintenanceRecords = async (req, res) => {
 
     res.json(records);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Unable to load maintenance records. Please try again." });
   }
 };
 
@@ -158,7 +161,7 @@ export const getMaintenanceById = async (req, res) => {
     res.json(record);
   } catch (error) {
     console.error("❌ Error fetching maintenance record:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(400).json({ message: publicErrorMessage(error, "Maintenance record could not be saved. Please check the form and try again.") });
   }
 };
 
@@ -205,7 +208,7 @@ export const updateMaintenance = async (req, res) => {
       { new: true }
     );
 
-    console.log("🧾 Updated related invoice:", bill?._id);
+    console.log("Updated related invoice:", bill?._id);
 
     try {
       // Decrease inventory for newly added parts
@@ -228,7 +231,7 @@ export const updateMaintenance = async (req, res) => {
     res.json(updated);
   } catch (error) {
     console.error("❌ Error updating maintenance record:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(400).json({ message: publicErrorMessage(error, "Maintenance record could not be saved. Please check the form and try again.") });
   }
 };
 
@@ -247,7 +250,7 @@ export const getRecentMaintenances = async (req, res) => {
     return res.json(records);
   } catch (error) {
     console.error("❌ Error fetching recent maintenances:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res.status(400).json({ message: publicErrorMessage(error, "Maintenance record could not be saved. Please check the form and try again.") });
   }
 };
 

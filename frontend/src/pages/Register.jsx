@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../utils/axiosInstance";
+import { getApiErrorMessage } from "../utils/errorMessages";
 import { useAuth } from "../context/useAuth";
 
 function Register() {
@@ -35,8 +36,7 @@ function Register() {
       setMessage("✅ Registration successful!");
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message;
-      setMessage(`❌ Registration failed: ${errorMessage}`);
+      setMessage(`❌ ${getApiErrorMessage(err, "Registration failed. Please check the form and try again.")}`);
     } finally {
       setIsSubmitting(false);
     }

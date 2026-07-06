@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
+import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
 
 
@@ -55,7 +56,7 @@ const EditBill = () => {
                 setAvailableParts(partsRes.data);
                 setForm({ partsUsed: (billRes.data.maintenanceId?.partsUsed || []).map(p => p._id) });
             } catch (err) {
-                toast.error('Failed to fetch bill data: ' + err.message);
+                toast.error(getApiErrorMessage(err, 'Failed to load invoice details. Please try again.'));
             } finally {
                 setLoading(false);
             }
@@ -89,7 +90,7 @@ const EditBill = () => {
             toast.success('Invoice updated successfully');
             navigate('/invoices');
         } catch (err) {
-            toast.error('Update failed: ' + err.message);
+            toast.error(getApiErrorMessage(err, 'Invoice could not be updated. Please check the form and try again.'));
         }
     };
 

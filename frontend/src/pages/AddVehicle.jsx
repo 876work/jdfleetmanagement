@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "../utils/axiosInstance";
+import { getApiErrorMessage } from "../utils/errorMessages";
 import { useNavigate } from "react-router-dom";
 import CategoryModal from "../components/CategoryModal";
 import OwnerModal from "../components/OwnerModal";
@@ -45,7 +46,7 @@ export default function AddVehicle() {
       setMessage("Vehicle added successfully!");
       navigate("/vehicles");
     } catch (err) {
-      setMessage("Error: " + (err.response?.data?.message || err.message));
+      setMessage("Error: " + getApiErrorMessage(err, "Vehicle could not be saved. Please check the form and try again."));
     }
   };
 
@@ -63,7 +64,6 @@ export default function AddVehicle() {
 
   const addNewOwner = async (ownerData) => {
     try {
-      console.log("Sending owner data:", ownerData);
       const res = await axios.post("/api/customers", ownerData);
       const createdOwner = res.data;
       setOwners(prev => [...prev, createdOwner]);
@@ -71,9 +71,9 @@ export default function AddVehicle() {
       setShowOwnerModal(false);
     } catch (err) {
       const msg =
-        err.response?.data?.message === "Email already exists"
-          ? "❌ This email is already registered!"
-          : "❌ Failed to add owner: " + (err.response?.data?.message || err.message);
+        err.response?.data?.message === "Email already exists."
+          ? "❌ This email is already registered."
+          : "❌ Failed to add owner: " + getApiErrorMessage(err, "Owner could not be saved. Please check the form and try again.");
 
       setMessage(msg.replace("❌ ", "Error: "));
     }

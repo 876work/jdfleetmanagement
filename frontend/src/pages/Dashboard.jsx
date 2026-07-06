@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance";
 import { useAuth } from "../context/useAuth";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -55,13 +55,13 @@ export default function Dashboard() {
     const lowStockThreshold = dashboard?.settings?.lowStockThreshold || 5;
 
     return (
-        <div className="min-h-screen bg-brand-soft">
-            <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="app-shell">
+            <div className="app-container">
+                <section className="page-header flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p className="text-sm font-semibold uppercase tracking-wide text-brand-gold">Fleet command center</p>
-                        <h1 className="mt-1 text-3xl font-bold text-brand-deep sm:text-4xl">JD Fleet Management Dashboard</h1>
-                        <p className="mt-2 max-w-3xl text-brand-slate">
+                        <p className="eyebrow">Fleet command center</p>
+                        <h1 className="page-title">JD Fleet Management Dashboard</h1>
+                        <p className="page-description">
                             Track fleet size, owners, service work, billing activity, vehicles that may be overdue for service, and parts that need restocking.
                         </p>
                         <p className="mt-3 text-brand-slate">
@@ -74,7 +74,7 @@ export default function Dashboard() {
                         <ActionButton onClick={() => navigate("/maintenance")} variant="gold">🛠️ Maintenance</ActionButton>
                         <ActionButton onClick={() => navigate("/invoices")} variant="deep">🧾 Invoices</ActionButton>
                     </div>
-                </div>
+                </section>
 
                 {error && (
                     <div className="mt-6 rounded-xl border border-brand-error bg-white p-4 text-sm text-brand-error shadow-sm">
@@ -127,7 +127,7 @@ function ActionButton({ children, onClick, variant = "navy" }) {
 
 function StatCard({ title, value = 0, subtitle, icon, loading, color }) {
     return (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden rounded-2xl border border-brand-border bg-white shadow-sm">
+        <Motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="card overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
             <div className={`h-2 bg-gradient-to-r ${color}`} />
             <div className="p-5">
                 <div className="flex items-center justify-between gap-3">
@@ -137,7 +137,7 @@ function StatCard({ title, value = 0, subtitle, icon, loading, color }) {
                 <h3 className="mt-4 font-semibold text-brand-slate">{title}</h3>
                 {loading ? <div className="mt-2 h-9 w-20 animate-pulse rounded bg-brand-neutral" /> : <p className="mt-1 text-4xl font-bold text-brand-text">{value}</p>}
             </div>
-        </motion.div>
+        </Motion.div>
     );
 }
 
@@ -145,13 +145,13 @@ function Panel({ title, children, actionLabel, onAction, tone = "default" }) {
     const borderClass = tone === "warning" ? "border-l-4 border-l-brand-warning" : "";
 
     return (
-        <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className={`rounded-xl border border-brand-border bg-white p-4 shadow-sm ${borderClass}`}>
+        <Motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className={`card-pad ${borderClass}`}>
             <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-brand-deep">{title}</h2>
                 {actionLabel && <button onClick={onAction} className="text-sm font-semibold text-brand-navy hover:text-brand-deep">{actionLabel}</button>}
             </div>
             {children}
-        </motion.section>
+        </Motion.section>
     );
 }
 
@@ -240,7 +240,7 @@ function LowStockList({ parts, navigate }) {
 }
 
 function EmptyState({ children }) {
-    return <p className="rounded-lg bg-brand-soft p-3 text-sm text-brand-slate">{children}</p>;
+    return <div className="empty-state py-6"><p>{children}</p></div>;
 }
 
 function ListSkeleton() {

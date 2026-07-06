@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance";
-//import { AnimatePresence, motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import ConfirmModal from "../components/ConfirmModal";
 import AddMaintenanceModal from "../components/AddMaintenanceModal";
 import toast from "react-hot-toast";
@@ -24,7 +24,7 @@ export default function MaintenanceList() {
         try {
             const res = await axios.get("/api/maintenance");
             setRecords(res.data);
-        } catch (err) {
+        } catch {
             toast.error("Failed to fetch maintenance records");
         }
     };
@@ -33,7 +33,7 @@ export default function MaintenanceList() {
         try {
             const res = await axios.get("/api/vehicles");
             setVehicles(res.data);
-        } catch (err) {
+        } catch {
             toast.error("Failed to fetch vehicles");
         }
     };
@@ -53,7 +53,7 @@ export default function MaintenanceList() {
             setRecords(prev => prev.filter(r => r._id !== recordToDelete._id));
             toast.success("Record deleted successfully");
             setConfirmVisible(false);
-        } catch (err) {
+        } catch {
             toast.error("Failed to delete record");
         }
     };
@@ -63,30 +63,20 @@ export default function MaintenanceList() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-center mb-8">🛠️ Maintenance Records</h1>
+        <div className="app-shell"><main className="app-container"><section className="page-header"><p className="eyebrow">Service operations</p><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="page-title">Maintenance Records</h1><p className="page-description">Track service history, parts usage, invoice links, and upcoming maintenance needs.</p></div><button onClick={() => setShowModal(true)} className="btn-primary">Add Maintenance</button></div></section>
 
-            <div className="flex justify-end mb-6">
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-deep"
-                >
-                    ➕ Add Maintenance
-                </button>
-            </div>
-
-            <ul className="space-y-4">
+            {records.length === 0 ? <div className="empty-state"><div className="text-3xl">🛠️</div><h2 className="mt-3 text-lg font-bold text-brand-deep">No maintenance records</h2><p className="mt-1">Create a maintenance record to build service history for your fleet.</p><button onClick={() => setShowModal(true)} className="btn-primary mt-5">Add Maintenance</button></div> : <ul className="grid gap-4">
                 {records.map(record => {
                     const isOpen = expandedId === record._id;
                     const vehicle = record.vehicleId;
 
                     return (
-                        <li key={record._id} className="bg-white border rounded shadow">
+                        <li key={record._id} className="card overflow-hidden">
                             <button
                                 onClick={() => toggleExpand(record._id)}
-                                className="w-full flex justify-between items-center px-4 py-3 hover:bg-brand-soft transition"
+                                className="flex w-full flex-col gap-3 px-4 py-4 text-left transition hover:bg-brand-soft sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <div className="font-medium text-lg">
+                                <div className="text-lg font-bold text-brand-deep">
                                     {isOpen ? "➖" : "➕"} {vehicle?.brand || "Unknown"} {vehicle?.model || ""}
                                     <span className="ml-2 text-sm font-normal text-brand-slate">{record.maintenanceType || "General Maintenance"}</span>
                                 </div>
@@ -95,13 +85,13 @@ export default function MaintenanceList() {
 
                             <AnimatePresence mode="wait">
                                 {isOpen && (
-                                    <div
+                                    <Motion.div
                                         key={`motion-${record._id}`}
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.3 }}
-                                        className="px-6 pb-4 pt-2 text-sm text-brand-slate"
+                                        className="border-t border-brand-border px-4 py-4 text-sm text-brand-slate sm:px-6"
                                     >
                                         <p><strong>🆔 Plate:</strong> {vehicle?.plateNumber || "Unknown"}</p>
                                         <p><strong>🧰 Type:</strong> {record.maintenanceType || "General Maintenance"}</p>
@@ -137,7 +127,7 @@ export default function MaintenanceList() {
                                         <div className="flex gap-3 mt-4">
                                             <button
                                                 onClick={() => navigate(`/edit-maintenance/${record._id}`)}
-                                                className="bg-brand-gold hover:bg-brand-highlight text-white px-3 py-1 rounded"
+                                                className="btn-warning"
                                             >
                                                 ✏️ Edit
                                             </button>
@@ -147,11 +137,11 @@ export default function MaintenanceList() {
                                                         const res = await axios.get(`/api/bills/by-maintenance/${record._id}`);
                                                         setSelectedInvoice(res.data);
                                                         setInvoiceModalVisible(true);
-                                                    } catch (err) {
+                                                    } catch {
                                                         toast.error("No invoice found for this maintenance.");
                                                     }
                                                 }}
-                                                className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
+                                                className="btn-secondary"
                                             >
                                                 📄 View Invoice
                                             </button>
@@ -159,13 +149,13 @@ export default function MaintenanceList() {
 
 
                                         </div>
-                                    </div>
+                                    </Motion.div>
                                 )}
                             </AnimatePresence>
                         </li>
                     );
                 })}
-            </ul>
+            </ul>}
 
             {/* Add Modal */}
             <AddMaintenanceModal
@@ -190,6 +180,6 @@ export default function MaintenanceList() {
                 onClose={() => setInvoiceModalVisible(false)}
             />
 
-        </div>
+        </main></div>
     );
 }

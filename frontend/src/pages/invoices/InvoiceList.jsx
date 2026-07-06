@@ -71,18 +71,17 @@ const InvoiceList = () => {
     };
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-center mb-10"> 🧾 Fleet Invoices</h1>
+        <div className="app-shell"><main className="app-container"><section className="page-header"><p className="eyebrow">Billing reports</p><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="page-title">Fleet Invoices</h1><p className="page-description">Filter, review, print, and archive JD Fleet Management invoices.</p></div><button className="btn-success" onClick={() => navigate('/add-bill')}>Add Invoice</button></div></section>
 
-            <div className="flex gap-4 mb-6">
-                <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="border p-2 rounded w-1/2">
+            <div className="card-pad mb-6 grid gap-4 sm:grid-cols-2">
+                <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="form-control">
                     <option value="">All Customers</option>
                     {customers.map((cust) => (
                         <option key={cust._id} value={cust._id}>{cust.firstName} {cust.lastName}</option>
                     ))}
                 </select>
 
-                <select value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)} className="border p-2 rounded w-1/2">
+                <select value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)} className="form-control">
                     <option value="">All Vehicles</option>
                     {vehicles.map((veh) => (
                         <option key={veh._id} value={veh._id}>{veh.model} - {veh.plateNumber}</option>
@@ -90,19 +89,16 @@ const InvoiceList = () => {
                 </select>
             </div>
 
-            <div className="flex justify-between items-center mb-6">
-                <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-navy" onClick={() => { setSelectedCustomer(''); setSelectedVehicle(''); }}>Reset Filters</button>
-                <button className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success" onClick={() => navigate('/add-bill')}> ➕ Add Invoice</button>
-            </div>
+            <div className="mb-6 flex justify-end"><button className="btn-secondary" onClick={() => { setSelectedCustomer(''); setSelectedVehicle(''); }}>Reset Filters</button></div>
 
             {loading ? (
-                <p>Loading...</p>
+                <div className="card-pad text-brand-slate">Loading invoices...</div>
             ) : filteredBills.length === 0 ? (
-                <p>No invoices found.</p>
+                <div className="empty-state"><div className="text-3xl">🧾</div><h2 className="mt-3 text-lg font-bold text-brand-deep">No invoices found</h2><p className="mt-1">Try adjusting filters or create a new invoice.</p><button className="btn-primary mt-5" onClick={() => navigate('/add-bill')}>Create Invoice</button></div>
             ) : (
-                <div className="space-y-4">
+                <div className="grid gap-4">
                     {filteredBills.map((bill) => (
-                        <div key={bill._id} className="border p-4 rounded shadow-sm bg-white hover:shadow-md transition flex justify-between items-center">
+                        <div key={bill._id} className="card-pad flex flex-col gap-4 transition hover:shadow-md lg:flex-row lg:items-start lg:justify-between">
                             <div>
                                 <div className="font-semibold"> 🦾 Customer: {bill.customer ? `${bill.customer.firstName} ${bill.customer.lastName}` : 'Unknown'}</div>
                                 <div>🚗 Vehicle: {bill.vehicle?.model || 'N/A'} - {bill.vehicle?.plateNumber || ''}</div>
@@ -138,10 +134,10 @@ const InvoiceList = () => {
                             </div>
 
 
-                            <div className="flex flex-col items-end gap-2">
-                                <button onClick={() => navigate(`/edit-bill/${bill._id}`)} className="bg-brand-gold text-white px-5 py-2 rounded hover:bg-brand-highlight"> ✏️ Edit</button>
-                                <button onClick={() => handleArchive(bill._id)} className="bg-brand-error text-white px-3 py-2 rounded hover:bg-brand-error"> 📦 Archive</button>
-                                <button onClick={() => handlePrint(bill)} className="bg-indigo-500 text-white px-5 py-2 rounded hover:bg-indigo-600"> 🖶️ Print</button>
+                            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
+                                <button onClick={() => navigate(`/edit-bill/${bill._id}`)} className="btn-warning"> ✏️ Edit</button>
+                                <button onClick={() => handleArchive(bill._id)} className="btn-danger"> 📦 Archive</button>
+                                <button onClick={() => handlePrint(bill)} className="btn-secondary"> 🖶️ Print</button>
                             </div>
                         </div>
                     ))}
@@ -208,7 +204,7 @@ const InvoiceList = () => {
                 </div>
             )}
 
-        </div>
+        </main></div>
     );
 };
 

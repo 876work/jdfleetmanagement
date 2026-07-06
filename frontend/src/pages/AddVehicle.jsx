@@ -6,12 +6,15 @@ import OwnerModal from "../components/OwnerModal";
 
 export default function AddVehicle() {
   const [formData, setFormData] = useState({
+    name: "",
     plateNumber: "",
     brand: "",
     model: "",
     year: "",
     categoryId: "",
     ownerId: "",
+    status: "active",
+    notes: "",
   });
 
   const [categories, setCategories] = useState([]);
@@ -82,10 +85,17 @@ export default function AddVehicle() {
         <h1 className="text-2xl font-bold text-center mb-4">🚗 Add Fleet Vehicle</h1>
         {message && <p className="mb-4 text-brand-navy">{message}</p>}
         <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
-          <input name="plateNumber" value={formData.plateNumber} onChange={handleChange} type="text" placeholder="Plate Number" className="w-full border px-3 py-2 rounded" required />
-          <input name="brand" value={formData.brand} onChange={handleChange} type="text" placeholder="Brand" className="w-full border px-3 py-2 rounded" required />
+          <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="Vehicle Name or Label (e.g. Truck 12)" className="w-full border px-3 py-2 rounded" />
+          <input name="plateNumber" value={formData.plateNumber} onChange={handleChange} type="text" placeholder="License Plate Number" className="w-full border px-3 py-2 rounded" required />
+          <input name="brand" value={formData.brand} onChange={handleChange} type="text" placeholder="Make" className="w-full border px-3 py-2 rounded" required />
           <input name="model" value={formData.model} onChange={handleChange} type="text" placeholder="Model" className="w-full border px-3 py-2 rounded" required />
           <input name="year" value={formData.year} onChange={handleChange} type="number" placeholder="Year (e.g. 2020)" className="w-full border px-3 py-2 rounded" required />
+          <select name="status" value={formData.status} onChange={handleChange} className="w-full border px-3 py-2 rounded" required>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="retired">Retired</option>
+          </select>
           <div>
             <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full border px-3 py-2 rounded" required>
               <option value="">-- Select Category --</option>
@@ -104,6 +114,7 @@ export default function AddVehicle() {
             </select>
             <button type="button" onClick={() => setShowOwnerModal(true)} className="text-brand-navy underline text-sm mt-1">+ Add New Owner</button>
           </div>
+          <textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Notes (maintenance reminders, VIN, equipment, etc.)" className="w-full border px-3 py-2 rounded" rows="3" />
           <button type="submit" className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success">Submit</button>
         </form>
         <CategoryModal visible={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSave={addNewCategory} />

@@ -8,12 +8,14 @@ const InvoicePrintModal = forwardRef(({ bill, onCancel, onConfirm }, ref) => {
             <h2 className="text-xl font-bold mb-4">🧾 Invoice Preview</h2>
             <p><strong>Customer:</strong> {bill.customer?.firstName} {bill.customer?.lastName}</p>
             <p><strong>Vehicle:</strong> {bill.vehicle?.model} – {bill.vehicle?.plateNumber}</p>
-            <p><strong>Date:</strong> {new Date(bill.date).toLocaleDateString()}</p>
-            <p><strong>Total Price:</strong> {bill.totalPrice.toLocaleString()} €</p>
+            <p><strong>Invoice Date:</strong> {new Date(bill.date).toLocaleDateString()}</p>
+            <p><strong>Payment Status:</strong> {(bill.paymentStatus || "unpaid").charAt(0).toUpperCase() + (bill.paymentStatus || "unpaid").slice(1)}</p>
+            <p><strong>Amount:</strong> {Number(bill.totalPrice || 0).toLocaleString()} €</p>
+            {bill.notes && <p><strong>Notes:</strong> {bill.notes}</p>}
 
             <ul className="mt-3 list-disc ml-6">
-                {bill.services.map((srv, idx) => (
-                    <li key={idx}>{srv.description} — {srv.price.toLocaleString()} €</li>
+                {bill.services?.map((srv, idx) => (
+                    <li key={idx}>{srv.description} — {Number(srv.price || 0).toLocaleString()} €</li>
                 ))}
             </ul>
 

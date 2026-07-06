@@ -4,6 +4,17 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 
+const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} €`;
+
+const formatStatus = (status = 'unpaid') => status.charAt(0).toUpperCase() + status.slice(1);
+
+const statusClass = (status = 'unpaid') => ({
+    paid: 'bg-green-100 text-green-800',
+    overdue: 'bg-red-100 text-red-800',
+    cancelled: 'bg-gray-200 text-gray-700',
+    unpaid: 'bg-yellow-100 text-yellow-800',
+}[status] || 'bg-yellow-100 text-yellow-800');
+
 const InvoiceList = () => {
     const [bills, setBills] = useState([]);
     const [customers, setCustomers] = useState([]);
@@ -61,7 +72,7 @@ const InvoiceList = () => {
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-center mb-10"> 📄 Fleet Reports</h1>
+            <h1 className="text-3xl font-bold text-center mb-10"> 🧾 Fleet Invoices</h1>
 
             <div className="flex gap-4 mb-6">
                 <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="border p-2 rounded w-1/2">
@@ -95,14 +106,20 @@ const InvoiceList = () => {
                             <div>
                                 <div className="font-semibold"> 🦾 Customer: {bill.customer ? `${bill.customer.firstName} ${bill.customer.lastName}` : 'Unknown'}</div>
                                 <div>🚗 Vehicle: {bill.vehicle?.model || 'N/A'} - {bill.vehicle?.plateNumber || ''}</div>
-                                <div>💰 Total Price: {bill.totalPrice.toLocaleString()} €</div>
-                                <div>📅 Date: {new Date(bill.date).toLocaleDateString()}</div>
+                                <div>💰 Amount: {formatCurrency(bill.totalPrice)}</div>
+                                <div>📅 Invoice Date: {new Date(bill.date).toLocaleDateString()}</div>
+                                <div className="mt-1">
+                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClass(bill.paymentStatus)}`}>
+                                        {formatStatus(bill.paymentStatus)}
+                                    </span>
+                                </div>
+                                {bill.notes && <div className="mt-2 text-sm text-brand-slate">📝 Notes: {bill.notes}</div>}
 
                                 <details className="mt-2">
                                     <summary className="cursor-pointer text-brand-navy">View Services</summary>
                                     <ul className="list-disc pl-5 mt-2">
-                                        {bill.services.map((srv, idx) => (
-                                            <li key={idx}>{srv.description} — {srv.price.toLocaleString()} €</li>
+                                        {bill.services?.map((srv, idx) => (
+                                            <li key={idx}>{srv.description} — {formatCurrency(srv.price)}</li>
                                         ))}
                                     </ul>
                                 </details>
@@ -133,18 +150,19 @@ const InvoiceList = () => {
 
             {/* Printable View */}
             {printBill && (
-                <div className="fixed inset-0 bg-white text-white p-10 z-50" ref={printRef}>
+                <div className="fixed inset-0 bg-white text-gray-900 p-10 z-50 overflow-auto" ref={printRef}>
                     <div className="max-w-xl mx-auto border rounded shadow p-6">
                         <h2 className="text-xl font-bold text-center mb-4">🧾 Invoice Details</h2>
                         <p><strong>🧍 Customer:</strong> {printBill.customer?.firstName} {printBill.customer?.lastName}</p>
                         <p><strong>🚗 Vehicle:</strong> {printBill.vehicle?.brand} {printBill.vehicle?.model} ({printBill.vehicle?.plateNumber})</p>
-                        <p><strong>📅 Date:</strong> {new Date(printBill.date).toLocaleDateString()}</p>
+                        <p><strong>📅 Invoice Date:</strong> {new Date(printBill.date).toLocaleDateString()}</p>
+                        <p><strong>💳 Payment Status:</strong> {formatStatus(printBill.paymentStatus)}</p>
 
                         <div className="mt-4">
                             <h4 className="font-semibold mb-2">Services:</h4>
                             <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {printBill.services.map((srv, idx) => (
-                                    <li key={idx}>{srv.description} — €{srv.price.toLocaleString()}</li>
+                                {printBill.services?.map((srv, idx) => (
+                                    <li key={idx}>{srv.description} — {formatCurrency(srv.price)}</li>
                                 ))}
                             </ul>
                         </div>
@@ -162,7 +180,8 @@ const InvoiceList = () => {
                             </ul>
                         </div>
 
-                        <p className="mt-4 font-bold text-right text-lg">💰 Total: €{printBill.totalPrice.toLocaleString()}</p>
+                        {printBill.notes && <p className="mt-4"><strong>Notes:</strong> {printBill.notes}</p>}
+                        <p className="mt-4 font-bold text-right text-lg">💰 Amount Due: {formatCurrency(printBill.totalPrice)}</p>
 
                         {/* Action Buttons */}
                         <div className="flex justify-between gap-3 mt-6 no-print">

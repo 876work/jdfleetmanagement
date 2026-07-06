@@ -20,6 +20,8 @@ const EditBill = () => {
             vehicle: '',
             maintenanceId: '',
             services: [],
+            paymentStatus: 'unpaid',
+            notes: '',
         },
     });
 
@@ -43,6 +45,9 @@ const EditBill = () => {
                     vehicle: billRes.data.vehicle._id,
                     services: billRes.data.services,
                     maintenanceId: billRes.data.maintenanceId?._id || '',
+                    date: billRes.data.date ? billRes.data.date.split('T')[0] : '',
+                    paymentStatus: billRes.data.paymentStatus || 'unpaid',
+                    notes: billRes.data.notes || '',
                 });
 
                 setCustomers(customersRes.data);
@@ -76,6 +81,9 @@ const EditBill = () => {
                 services: cleanedServices,
                 totalPrice,
                 partsUsed: form.partsUsed,
+                date: data.date,
+                paymentStatus: data.paymentStatus,
+                notes: data.notes,
             });
 
             toast.success('Invoice updated successfully');
@@ -117,6 +125,23 @@ const EditBill = () => {
                                 {v.model} - {v.plateNumber}
                             </option>
                         ))}
+                    </select>
+                </div>
+
+                {/* Date */}
+                <div>
+                    <label className="block font-medium mb-1">Invoice Date</label>
+                    <input type="date" {...register('date')} className="border p-2 rounded w-full" />
+                </div>
+
+                {/* Payment Status */}
+                <div>
+                    <label className="block font-medium mb-1">Payment Status</label>
+                    <select {...register('paymentStatus')} className="border p-2 rounded w-full">
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
 
@@ -176,6 +201,12 @@ const EditBill = () => {
                     </div>
                 </div>
 
+
+                {/* Notes */}
+                <div>
+                    <label className="block font-medium mb-1">Notes</label>
+                    <textarea {...register('notes')} rows="3" className="border p-2 rounded w-full" placeholder="Optional invoice notes" />
+                </div>
 
                 {/* Action Buttons */}
                 <div className="flex justify-between mt-6">

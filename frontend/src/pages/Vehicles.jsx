@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { isAdmin } from "../utils/permissions";
+import { isAdmin as checkIsAdmin } from "../utils/permissions";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import EditVehicleModal from "../components/EditVehicleModal";
 import ConfirmModal from "../components/ConfirmModal";
@@ -24,7 +24,7 @@ export default function Vehicles() {
 
   const navigate = useNavigate();
   const { auth } = useAuth();
-  const admin = isAdmin(auth);
+  const admin = checkIsAdmin(auth);
 
   const fetchAll = async () => {
     try {

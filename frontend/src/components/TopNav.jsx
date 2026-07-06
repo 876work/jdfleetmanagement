@@ -66,6 +66,7 @@ export default function TopNav() {
                         <MobileLink to="/vehicles" onClick={() => setMenuOpen(false)}>Vehicles</MobileLink>
                         <MobileLink to="/maintenance" onClick={() => setMenuOpen(false)}>Maintenance</MobileLink>
                         <MobileLink to="/invoices" onClick={() => setMenuOpen(false)}>Reports</MobileLink>
+                        {auth?.user?.role === "admin" && <MobileLink to="/users" onClick={() => setMenuOpen(false)}>Users</MobileLink>}
                         <div className="mt-2 flex items-center justify-between gap-3 border-t border-brand-border pt-3">
                             <span className="truncate text-sm text-brand-slate">{auth?.user?.username ? `Hi, ${auth.user.username}` : "Logged in"}</span>
                             <button onClick={handleLogout} className="btn-danger">Logout</button>

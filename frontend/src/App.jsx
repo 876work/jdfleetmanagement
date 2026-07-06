@@ -4,10 +4,10 @@ import Vehicles from "./pages/Vehicles";
 import AddVehicle from "./pages/AddVehicle";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MaintenanceList from "./pages/MaintenanceList";
-import InvoiceList from './pages/invoices/InvoiceList';
-import AddBill from './pages/invoices/AddBill';
-import EditBill from './pages/invoices/EditBill';
-import InvoicesPage from './pages/invoices/InvoicesPage';
+import InvoiceList from "./pages/invoices/InvoiceList";
+import AddBill from "./pages/invoices/AddBill";
+import EditBill from "./pages/invoices/EditBill";
+import InvoicesPage from "./pages/invoices/InvoicesPage";
 import EditMaintenance from "./pages/EditMaintenance";
 import ArchivedInvoices from "./pages/invoices/ArchivedInvoices";
 import Dashboard from "./pages/Dashboard";
@@ -19,12 +19,17 @@ import { isAdmin } from "./utils/permissions";
 
 function App() {
   const { auth } = useAuth();
+
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+
       <Route path="/register" element={<Register />} />
+
       <Route path="/signup" element={<Navigate to="/register" replace />} />
+
       <Route path="/sign-up" element={<Navigate to="/register" replace />} />
+
       <Route
         path="/vehicles"
         element={
@@ -33,6 +38,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/vehicles/new"
         element={
@@ -41,6 +47,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/maintenance"
         element={
@@ -49,6 +56,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/invoices"
         element={
@@ -57,6 +65,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/InvoicesPage"
         element={
@@ -66,18 +75,24 @@ function App() {
         }
       />
 
-      <Route path="/add-bill"
+      <Route
+        path="/add-bill"
         element={
           <ProtectedRoute>
             <AddBill />
-          </ProtectedRoute>}
+          </ProtectedRoute>
+        }
       />
-      <Route path="/edit-bill/:id"
+
+      <Route
+        path="/edit-bill/:id"
         element={
           <ProtectedRoute>
             <EditBill />
-          </ProtectedRoute>}
+          </ProtectedRoute>
+        }
       />
+
       <Route
         path="/edit-maintenance/:id"
         element={
@@ -86,6 +101,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/invoices/archived"
         element={
@@ -94,6 +110,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/dashboard"
         element={
@@ -102,6 +119,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/parts/:id/order"
         element={
@@ -110,6 +128,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/users"
         element={

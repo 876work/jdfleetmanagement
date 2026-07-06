@@ -1,10 +1,13 @@
 import express from 'express';
-import { createCategory, getCategories } from '../controllers/vehicleCategoryController.js';
-import { requireAdmin } from '../middlewares/permissions.js';
+import {
+  createCategory,
+  getCategories
+} from '../controllers/vehicleCategoryController.js';
+import { requireAdminAction } from '../utils/permissions.js';
 
 const router = express.Router();
 
-router.post('/', requireAdmin('Staff users cannot access category management. Please contact an admin.'), createCategory);
+router.post('/', requireAdminAction, createCategory);
 router.get('/', getCategories);
 
 export default router;

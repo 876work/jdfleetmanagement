@@ -1,13 +1,24 @@
 // 📁 src/__tests__/InvoiceList.test.jsx
 import { render, screen, waitFor } from '@testing-library/react';
 import InvoiceList from '../pages/invoices/InvoiceList';
-import { BrowserRouter } from 'react-router-dom';
-import { vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import { vi, it, expect, beforeEach } from 'vitest';
 import axiosInstance from '../utils/axiosInstance';
-import { it, expect } from 'vitest';
 
 // ✅ Mock axiosInstance
 vi.mock('../utils/axiosInstance');
+
+// ✅ Mock auth context used by InvoiceList
+vi.mock('../context/useAuth', () => ({
+    useAuth: () => ({
+        auth: {
+            user: {
+                username: 'admin',
+                role: 'admin',
+            },
+        },
+    }),
+}));
 
 // ✅ Mock data for testing
 const mockBills = [
@@ -21,6 +32,7 @@ const mockBills = [
         ],
         totalPrice: 150,
         date: '2025-08-01T12:00:00.000Z',
+        paymentStatus: 'unpaid',
     },
 ];
 
@@ -32,31 +44,35 @@ const mockVehicles = [
     { _id: 'v1', model: 'X5', plateNumber: 'B-MW1234' },
 ];
 
-// ✅ Mock axios.get calls
-axiosInstance.get.mockImplementation((url) => {
-    switch (url) {
-        case '/api/bills':
-            return Promise.resolve({ data: mockBills });
-        case '/api/customers':
-            return Promise.resolve({ data: mockCustomers });
-        case '/api/vehicles':
-            return Promise.resolve({ data: mockVehicles });
-        default:
-            return Promise.resolve({ data: [] });
-    }
+beforeEach(() => {
+    vi.clearAllMocks();
+
+    // ✅ Mock axios.get calls
+    axiosInstance.get.mockImplementation((url) => {
+        switch (url) {
+            case '/api/bills':
+                return Promise.resolve({ data: mockBills });
+            case '/api/customers':
+                return Promise.resolve({ data: mockCustomers });
+            case '/api/vehicles':
+                return Promise.resolve({ data: mockVehicles });
+            default:
+                return Promise.resolve({ data: [] });
+        }
+    });
 });
 
 // ✅ Test case
 it('renders invoice list with mock data', async () => {
     render(
-        <BrowserRouter>
+        <MemoryRouter>
             <InvoiceList />
-        </BrowserRouter>
+        </MemoryRouter>
     );
 
     // Wait for data to load
     await waitFor(() => {
-        expect(screen.getByText(/🦾 Customer: Ali Ahmadi/)).toBeInTheDocument();
+        expect(screen.getByText(/🦾 Customer:\s*Ali Ahmadi/)).toBeInTheDocument();
         expect(screen.getAllByText(/X5 - B-MW1234/).length).toBeGreaterThan(0);
         expect(screen.getAllByText(/150 €/).length).toBeGreaterThan(0);
     });

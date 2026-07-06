@@ -4,7 +4,7 @@ import { deleteUser, getUsers, updateUserRole } from '../controllers/userControl
 
 const router = express.Router();
 
-router.use(authorizeRoles('admin'));
+router.use(authorizeRoles('admin')); // Staff cannot access User Management or mutate users.
 
 router.get('/', getUsers);
 router.patch('/:id/role', updateUserRole);

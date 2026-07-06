@@ -7,7 +7,10 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import InvoiceModal from "../components/InvoiceModal";
 import { useAuth } from "../context/useAuth";
-import { isAdmin, staffCanEditMaintenance } from "../utils/permissions";
+import {
+    isAdmin as checkIsAdmin,
+    staffCanEditMaintenance,
+} from "../utils/permissions";
 
 export default function MaintenanceList() {
     const [records, setRecords] = useState([]);
@@ -16,14 +19,15 @@ export default function MaintenanceList() {
     const [showModal, setShowModal] = useState(false);
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState(null);
-    const navigate = useNavigate();
     const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [vehicleFilter, setVehicleFilter] = useState("");
+
+    const navigate = useNavigate();
     const { auth } = useAuth();
-    const admin = isAdmin(auth);
+    const admin = checkIsAdmin(auth);
 
     const fetchRecords = async () => {
         try {
@@ -111,7 +115,11 @@ export default function MaintenanceList() {
 
         try {
             await axios.delete(`/api/maintenance/${recordToDelete._id}`);
-            setRecords((prev) => prev.filter((record) => record._id !== recordToDelete._id));
+
+            setRecords((prev) =>
+                prev.filter((record) => record._id !== recordToDelete._id)
+            );
+
             toast.success("Record deleted successfully");
             setConfirmVisible(false);
             setRecordToDelete(null);
@@ -133,12 +141,17 @@ export default function MaintenanceList() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h1 className="page-title">Maintenance Records</h1>
+
                             <p className="page-description">
-                                Track service history, parts usage, invoice links, and upcoming maintenance needs.
+                                Track service history, parts usage, invoice links, and upcoming
+                                maintenance needs.
                             </p>
                         </div>
 
-                        <button onClick={() => setShowModal(true)} className="btn-primary">
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="btn-primary"
+                        >
                             Add Maintenance
                         </button>
                     </div>
@@ -161,6 +174,7 @@ export default function MaintenanceList() {
                                 className="w-full rounded border border-brand-border p-2"
                             >
                                 <option value="">All Statuses</option>
+
                                 {statusOptions.map((status) => (
                                     <option key={status} value={status}>
                                         {status}
@@ -174,9 +188,12 @@ export default function MaintenanceList() {
                                 className="w-full rounded border border-brand-border p-2"
                             >
                                 <option value="">All Vehicles</option>
+
                                 {vehicles.map((vehicle) => (
                                     <option key={vehicle._id} value={vehicle._id}>
-                                        {vehicle.name || `${vehicle.brand || ""} ${vehicle.model || ""}`.trim()}{" "}
+                                        {vehicle.name ||
+                                            `${vehicle.brand || ""} ${vehicle.model || ""}`.trim() ||
+                                            "Unnamed vehicle"}{" "}
                                         {vehicle.plateNumber ? `- ${vehicle.plateNumber}` : ""}
                                     </option>
                                 ))}
@@ -185,7 +202,8 @@ export default function MaintenanceList() {
 
                         <div className="mt-3 flex items-center justify-between text-sm text-brand-slate">
                             <span>
-                                Showing {filteredRecords.length} of {records.length} maintenance records
+                                Showing {filteredRecords.length} of {records.length} maintenance
+                                records
                             </span>
 
                             <button
@@ -202,26 +220,40 @@ export default function MaintenanceList() {
                 {records.length === 0 ? (
                     <div className="empty-state">
                         <div className="text-3xl">🛠️</div>
+
                         <h2 className="mt-3 text-lg font-bold text-brand-deep">
                             No maintenance records
                         </h2>
+
                         <p className="mt-1">
-                            Create a maintenance record to build service history for your fleet.
+                            Create a maintenance record to build service history for your
+                            fleet.
                         </p>
-                        <button onClick={() => setShowModal(true)} className="btn-primary mt-5">
+
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="btn-primary mt-5"
+                        >
                             Add Maintenance
                         </button>
                     </div>
                 ) : filteredRecords.length === 0 ? (
                     <div className="empty-state">
                         <div className="text-3xl">🔎</div>
+
                         <h2 className="mt-3 text-lg font-bold text-brand-deep">
                             No matching maintenance records
                         </h2>
+
                         <p className="mt-1">
                             Adjust your search or filters to find the record you need.
                         </p>
-                        <button type="button" onClick={resetFilters} className="btn-primary mt-5">
+
+                        <button
+                            type="button"
+                            onClick={resetFilters}
+                            className="btn-primary mt-5"
+                        >
                             Reset filters
                         </button>
                     </div>
@@ -231,6 +263,7 @@ export default function MaintenanceList() {
                             const isOpen = expandedId === record._id;
                             const vehicle = record.vehicleId;
                             const recordStatus = (record.status || "completed").trim();
+                            const canEdit = admin || staffCanEditMaintenance(record);
 
                             return (
                                 <li key={record._id} className="card overflow-hidden">
@@ -241,6 +274,7 @@ export default function MaintenanceList() {
                                         <div className="text-lg font-bold text-brand-deep">
                                             {isOpen ? "➖" : "➕"} {vehicle?.brand || "Unknown"}{" "}
                                             {vehicle?.model || ""}
+
                                             <span className="ml-2 text-sm font-normal text-brand-slate">
                                                 {record.maintenanceType || "General Maintenance"}
                                             </span>
@@ -285,7 +319,9 @@ export default function MaintenanceList() {
                                                 {record.nextServiceDate && (
                                                     <p>
                                                         <strong>⏭️ Next Service:</strong>{" "}
-                                                        {new Date(record.nextServiceDate).toLocaleDateString()}
+                                                        {new Date(
+                                                            record.nextServiceDate
+                                                        ).toLocaleDateString()}
                                                     </p>
                                                 )}
 
@@ -293,7 +329,10 @@ export default function MaintenanceList() {
                                                     record.odometerReading !== null && (
                                                         <p>
                                                             <strong>🛣️ Odometer:</strong>{" "}
-                                                            {Number(record.odometerReading).toLocaleString()} mi
+                                                            {Number(
+                                                                record.odometerReading
+                                                            ).toLocaleString()}{" "}
+                                                            mi
                                                         </p>
                                                     )}
 
@@ -344,7 +383,7 @@ export default function MaintenanceList() {
                                                 </ul>
 
                                                 <div className="mt-4 flex flex-wrap gap-3">
-                                                    {(admin || staffCanEditMaintenance(record)) && (
+                                                    {canEdit && (
                                                         <button
                                                             onClick={() =>
                                                                 navigate(`/edit-maintenance/${record._id}`)
@@ -361,6 +400,7 @@ export default function MaintenanceList() {
                                                                 const res = await axios.get(
                                                                     `/api/bills/by-maintenance/${record._id}`
                                                                 );
+
                                                                 setSelectedInvoice(res.data);
                                                                 setInvoiceModalVisible(true);
                                                             } catch {

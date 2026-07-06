@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { isAdmin, staffCanEditInvoice } from "../../utils/permissions";
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} €`;
 
@@ -29,6 +31,8 @@ const InvoiceList = () => {
 
     const printRef = useRef();
     const navigate = useNavigate();
+    const { auth } = useAuth();
+    const admin = isAdmin(auth);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -346,19 +350,23 @@ const InvoiceList = () => {
                                 </div>
 
                                 <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                                    <button
-                                        onClick={() => navigate(`/edit-bill/${bill._id}`)}
-                                        className="btn-warning"
-                                    >
-                                        ✏️ Edit
-                                    </button>
+                                    {(admin || staffCanEditInvoice(bill)) && (
+                                        <button
+                                            onClick={() => navigate(`/edit-bill/${bill._id}`)}
+                                            className="btn-warning"
+                                        >
+                                            ✏️ Edit
+                                        </button>
+                                    )}
 
-                                    <button
-                                        onClick={() => handleArchive(bill._id)}
-                                        className="btn-danger"
-                                    >
-                                        📦 Archive
-                                    </button>
+                                    {admin && (
+                                        <button
+                                            onClick={() => handleArchive(bill._id)}
+                                            className="btn-danger"
+                                        >
+                                            📦 Archive
+                                        </button>
+                                    )}
 
                                     <button
                                         onClick={() => handlePrint(bill)}

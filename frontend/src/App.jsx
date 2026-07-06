@@ -14,8 +14,11 @@ import Dashboard from "./pages/Dashboard";
 import AddPartOrder from "./pages/AddPartOrder";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
+import { useAuth } from "./context/useAuth";
+import { isAdmin } from "./utils/permissions";
 
 function App() {
+  const { auth } = useAuth();
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -111,7 +114,7 @@ function App() {
         path="/users"
         element={
           <ProtectedRoute>
-            <Users />
+            {isAdmin(auth) ? <Users /> : <Navigate to="/dashboard" replace />}
           </ProtectedRoute>
         }
       />

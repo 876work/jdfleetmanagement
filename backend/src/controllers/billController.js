@@ -3,14 +3,16 @@ import MaintenanceRecord from '../models/MaintenanceRecord.js';
 //import Vehicle from '../models/Vehicle.js';
 import Part from "../models/Part.js";
 import { isNonEmptyString, isValidObjectId, publicErrorMessage } from "../utils/validation.js";
+import { isStaff } from "../middlewares/permissions.js";
 
-const PAYMENT_STATUSES = ["unpaid", "paid", "overdue", "cancelled"];
+const PAYMENT_STATUSES = ["draft", "unpaid", "paid", "overdue", "cancelled"];
+const STAFF_LOCKED_INVOICE_STATUSES = ["paid", "cancelled", "archived", "completed"];
 
 const validateBillPayload = ({ customer, vehicle, services = [], date, paymentStatus = "unpaid" }) => {
     if (!isValidObjectId(customer)) return "Select a valid customer.";
     if (!isValidObjectId(vehicle)) return "Select a valid vehicle.";
     if (date && Number.isNaN(Date.parse(date))) return "Enter a valid invoice date.";
-    if (!PAYMENT_STATUSES.includes(paymentStatus)) return "Payment status must be unpaid, paid, overdue, or cancelled.";
+    if (!PAYMENT_STATUSES.includes(paymentStatus)) return "Payment status must be draft, unpaid, paid, overdue, or cancelled.";
     if (!Array.isArray(services) || services.length === 0) return "Add at least one service to the invoice.";
     if (services.some((item) => !isNonEmptyString(item.description))) return "Each invoice service needs a description.";
     if (services.some((item) => Number.isNaN(Number(item.price)) || Number(item.price) < 0)) return "Service prices must be non-negative numbers.";
@@ -20,6 +22,9 @@ const validateBillPayload = ({ customer, vehicle, services = [], date, paymentSt
 export const createBill = async (req, res) => {
     try {
         const { customer, vehicle, services, date, maintenanceId, partsUsed = [], paymentStatus = "unpaid", notes = "" } = req.body;
+        if (isStaff(req) && !["draft", "unpaid"].includes(paymentStatus)) {
+            return res.status(403).json({ message: "Staff users can only create draft or unpaid invoices. Please contact an admin." });
+        }
         const validationError = validateBillPayload({ customer, vehicle, services, date, paymentStatus });
         if (validationError) return res.status(400).json({ message: validationError });
 
@@ -99,10 +104,27 @@ export const getBillById = async (req, res) => {
 export const updateBill = async (req, res) => {
     try {
         const { customer, vehicle, services = [], maintenanceId, partsUsed = [], date, paymentStatus = "unpaid", notes } = req.body;
+        const existingBill = await Bill.findById(req.params.id).lean();
+        if (!existingBill) return res.status(404).json({ message: 'Bill not found' });
+
+        if (isStaff(req)) {
+            const currentStatus = existingBill.archived ? "archived" : (existingBill.paymentStatus || "unpaid");
+            if (STAFF_LOCKED_INVOICE_STATUSES.includes(currentStatus)) {
+                return res.status(403).json({ message: "Staff users cannot edit paid, cancelled, archived, or completed invoices. Please contact an admin." });
+            }
+            if (paymentStatus === "paid" && existingBill.paymentStatus !== "paid") {
+                return res.status(403).json({ message: "Staff users cannot mark invoices as paid. Please contact an admin." });
+            }
+        }
+
         const validationError = validateBillPayload({ customer, vehicle, services, date, paymentStatus });
         if (validationError) return res.status(400).json({ message: validationError });
         const cleanServices = services.map((item) => ({ description: item.description.trim(), price: Number(item.price) }));
         const totalPrice = cleanServices.reduce((sum, item) => sum + item.price, 0);
+
+        if (isStaff(req) && Number(existingBill.totalPrice || 0) !== Number(totalPrice || 0)) {
+            return res.status(403).json({ message: "Staff users cannot change invoice amounts after creation. Please contact an admin." });
+        }
 
         // Prepare old/new parts arrays to compute inventory diff
         let oldParts = [];
@@ -133,7 +155,6 @@ export const updateBill = async (req, res) => {
             { new: true }
         );
 
-        if (!updatedBill) return res.status(404).json({ message: 'Bill not found' });
 
         if (maintenanceId) {
             await MaintenanceRecord.findByIdAndUpdate(

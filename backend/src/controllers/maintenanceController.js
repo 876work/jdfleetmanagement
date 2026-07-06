@@ -3,6 +3,7 @@ import Vehicle from "../models/Vehicle.js";
 import Bill from "../models/Bill.js";
 import Part from "../models/Part.js";
 import { isNonEmptyString, isValidObjectId, publicErrorMessage } from "../utils/validation.js";
+import { isStaff, STAFF_ALLOWED_MAINTENANCE_STATUSES } from "../middlewares/permissions.js";
 
 const VALID_MAINTENANCE_STATUSES = ["scheduled", "in progress", "completed", "cancelled"];
 
@@ -176,8 +177,15 @@ export const updateMaintenance = async (req, res) => {
 
     const { serviceDate, services, partsUsed } = payload;
 
-    // Read previous maintenance to compare parts inventory
+    // Read previous maintenance to compare parts inventory and permissions
     const oldRecord = await MaintenanceRecord.findById(req.params.id).lean();
+    if (!oldRecord) {
+      return res.status(404).json({ message: "Maintenance record not found" });
+    }
+
+    if (isStaff(req) && !STAFF_ALLOWED_MAINTENANCE_STATUSES.includes(oldRecord.status || "completed")) {
+      return res.status(403).json({ message: "Staff users can only update maintenance records while status is scheduled or in progress. Please contact an admin." });
+    }
     const oldParts = (oldRecord?.partsUsed || []).map(p => p.toString());
     const newParts = (partsUsed || []).map(p => p.toString());
 

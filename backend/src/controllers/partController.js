@@ -45,6 +45,16 @@ export const updatePart = async (req, res) => {
     }
 };
 
+export const deletePart = async (req, res) => {
+    try {
+        const part = await Part.findByIdAndDelete(req.params.id);
+        if (!part) return res.status(404).json({ message: "Part not found." });
+        res.json({ message: "Part deleted." });
+    } catch {
+        res.status(400).json({ message: "Invalid part identifier." });
+    }
+};
+
 export const addPartOrder = async (req, res) => {
     try {
         const { supplier, amount, notes, orderDate } = req.body;

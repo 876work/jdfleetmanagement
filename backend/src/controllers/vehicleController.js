@@ -1,5 +1,6 @@
 import Vehicle, { VEHICLE_STATUSES } from '../models/Vehicle.js';
 import { isNonEmptyString, isValidObjectId, sendValidationError, publicErrorMessage } from '../utils/validation.js';
+import { isStaff } from '../middlewares/permissions.js';
 
 const vehicleFields = [
   'name',
@@ -92,6 +93,22 @@ export const getVehicleById = async (req, res) => {
 // PUT /api/vehicles/:id → Update a vehicle
 export const updateVehicle = async (req, res) => {
   try {
+    if (isStaff(req)) {
+      const requestedFields = Object.keys(req.body).filter((field) => !['_id', 'status', 'notes'].includes(field));
+      if (requestedFields.length) {
+        return res.status(403).json({ message: 'Staff users can only update basic vehicle operational status. Please contact an admin for vehicle detail or ownership changes.' });
+      }
+      if (req.body.status && !VEHICLE_STATUSES.includes(req.body.status)) {
+        return res.status(400).json({ message: `Status must be one of: ${VEHICLE_STATUSES.join(', ')}.`, allowedStatuses: VEHICLE_STATUSES });
+      }
+      const staffPayload = {};
+      if (req.body.status !== undefined) staffPayload.status = req.body.status;
+      if (req.body.notes !== undefined) staffPayload.notes = req.body.notes;
+      const updated = await Vehicle.findByIdAndUpdate(req.params.id, staffPayload, { new: true, runValidators: true }).populate('ownerId categoryId');
+      if (!updated) return res.status(404).json({ message: 'Vehicle not found' });
+      return res.json(updated);
+    }
+
     const fields = validateVehiclePayload(req.body);
     if (Object.keys(fields).length) return sendValidationError(res, 'Please fix the highlighted vehicle fields.', fields);
     const updated = await Vehicle.findByIdAndUpdate(

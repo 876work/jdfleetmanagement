@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/useAuth';
+import { isAdmin, staffCanEditInvoice } from '../../utils/permissions';
 
 
 const EditBill = () => {
@@ -14,6 +16,9 @@ const EditBill = () => {
     const [vehicles, setVehicles] = useState([]);
     const [availableParts, setAvailableParts] = useState([]);
     const [form, setForm] = useState({ partsUsed: [] });
+    const [bill, setBill] = useState(null);
+    const { auth } = useAuth();
+    const admin = isAdmin(auth);
 
     const { register, control, handleSubmit, reset } = useForm({
         defaultValues: {
@@ -40,6 +45,8 @@ const EditBill = () => {
                     axiosInstance.get('/api/vehicles'),
                     axiosInstance.get('/api/parts'),
                 ]);
+
+                setBill(billRes.data);
 
                 reset({
                     customer: billRes.data.customer._id,
@@ -95,6 +102,7 @@ const EditBill = () => {
     };
 
     if (loading) return <p className="p-6">Loading...</p>;
+    if (!admin && !staffCanEditInvoice(bill)) return <p className="p-6 text-brand-error">Staff users cannot edit paid, cancelled, archived, or completed invoices.</p>;
 
     return (
         <div className="max-w-2xl mx-auto p-6">
@@ -140,9 +148,9 @@ const EditBill = () => {
                     <label className="block font-medium mb-1">Payment Status</label>
                     <select {...register('paymentStatus')} className="border p-2 rounded w-full">
                         <option value="unpaid">Unpaid</option>
-                        <option value="paid">Paid</option>
+                        {admin && <option value="paid">Paid</option>}
                         <option value="overdue">Overdue</option>
-                        <option value="cancelled">Cancelled</option>
+                        {admin && <option value="cancelled">Cancelled</option>}
                     </select>
                 </div>
 
@@ -164,19 +172,25 @@ const EditBill = () => {
                                     placeholder="Price"
                                     {...register(`services.${index}.price`)}
                                     className="border p-2 rounded w-32"
+                                    disabled={!admin}
+                                    title={!admin ? "Staff users cannot change invoice amounts after creation." : undefined}
                                 />
-                                <button type="button" onClick={() => remove(index)} className="text-brand-error">
-                                    🗑️
-                                </button>
+                                {admin && (
+                                    <button type="button" onClick={() => remove(index)} className="text-brand-error">
+                                        🗑️
+                                    </button>
+                                )}
                             </div>
                         ))}
-                        <button
-                            type="button"
-                            onClick={() => append({ description: '', price: '' })}
-                            className="text-sm text-brand-navy"
-                        >
-                            ➕ Add Service
-                        </button>
+                        {admin && (
+                            <button
+                                type="button"
+                                onClick={() => append({ description: '', price: '' })}
+                                className="text-sm text-brand-navy"
+                            >
+                                ➕ Add Service
+                            </button>
+                        )}
                     </div>
                 </div>
                 {/* Parts Section */}

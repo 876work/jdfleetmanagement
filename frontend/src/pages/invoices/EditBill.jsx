@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
+import { formatCurrency } from '../../utils/currency';
 
 
 const EditBill = () => {
@@ -15,7 +16,7 @@ const EditBill = () => {
     const [availableParts, setAvailableParts] = useState([]);
     const [form, setForm] = useState({ partsUsed: [] });
 
-    const { register, control, handleSubmit, reset } = useForm({
+    const { register, control, handleSubmit, reset, watch } = useForm({
         defaultValues: {
             customer: '',
             vehicle: '',
@@ -30,6 +31,8 @@ const EditBill = () => {
         control,
         name: 'services',
     });
+    const services = watch('services') || [];
+    const displayedTotal = services.reduce((sum, item) => sum + Number(item.price || 0), 0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -148,7 +151,7 @@ const EditBill = () => {
 
                 {/* Services */}
                 <div>
-                    <label className="block font-medium mb-2">Services</label>
+                    <label className="block font-medium mb-2">Services / Prices (XCD)</label>
                     <div className="space-y-2">
                         {fields.map((field, index) => (
                             <div key={field.id} className="flex gap-2">
@@ -161,7 +164,7 @@ const EditBill = () => {
                                 <input
                                     type="number"
                                     step="0.01"
-                                    placeholder="Price"
+                                    placeholder="Unit Price (XCD)"
                                     {...register(`services.${index}.price`)}
                                     className="border p-2 rounded w-32"
                                 />
@@ -208,6 +211,8 @@ const EditBill = () => {
                     <label className="block font-medium mb-1">Notes</label>
                     <textarea {...register('notes')} rows="3" className="border p-2 rounded w-full" placeholder="Optional invoice notes" />
                 </div>
+
+                <div className="font-bold text-lg">Invoice Total (XCD): {formatCurrency(displayedTotal)}</div>
 
                 {/* Action Buttons */}
                 <div className="flex justify-between mt-6">

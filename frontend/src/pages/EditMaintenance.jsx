@@ -69,7 +69,7 @@ export default function EditMaintenance() {
 
     const updateService = (index, field, value) => {
         const updated = [...form.services];
-        updated[index][field] = field === "cost" ? parseInt(value) : value;
+        updated[index][field] = field === "cost" ? parseFloat(value) : value;
         setForm(prev => ({ ...prev, services: updated }));
     };
 
@@ -185,7 +185,7 @@ export default function EditMaintenance() {
                             type="number"
                             value={srv.cost || ""}
                             onChange={(e) => updateService(idx, "cost", e.target.value)}
-                            placeholder="Cost"
+                            placeholder="Cost (XCD)"
                             className="w-24 border p-2 rounded"
                         />
                         <button onClick={() => removeService(idx)} className="text-red-600">🗑️</button>

@@ -3,7 +3,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} €`;
+import { formatCurrency } from "../../utils/currency";
 
 const formatStatus = (status = "unpaid") =>
     status.charAt(0).toUpperCase() + status.slice(1);

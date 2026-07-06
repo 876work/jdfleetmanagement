@@ -1,5 +1,7 @@
 import React from "react";
 
+import { formatCurrency } from "../utils/currency";
+
 export default function InvoiceModal({ visible, onClose, invoice }) {
     if (!visible || !invoice) return null;
 
@@ -21,7 +23,7 @@ export default function InvoiceModal({ visible, onClose, invoice }) {
                     <h4 className="font-semibold mb-2">Services:</h4>
                     <ul className="list-disc pl-5 space-y-1 text-sm">
                         {invoice.services?.map((srv, idx) => (
-                            <li key={idx}>{srv.description} — €{Number(srv.price || 0).toLocaleString()}</li>
+                            <li key={idx}>{srv.description} — {formatCurrency(srv.price)}</li>
                         ))}
                     </ul>
                 </div>
@@ -40,7 +42,7 @@ export default function InvoiceModal({ visible, onClose, invoice }) {
                     </ul>
                 </div>
                 {invoice.notes && <p className="mt-4"><strong>Notes:</strong> {invoice.notes}</p>}
-                <p className="mt-4 font-bold text-right text-lg">💰 Amount: €{Number(invoice.totalPrice || 0).toLocaleString()}</p>
+                <p className="mt-4 font-bold text-right text-lg">💰 Amount: {formatCurrency(invoice.totalPrice)}</p>
 
                 <div className="flex justify-end mt-6">
                     <button

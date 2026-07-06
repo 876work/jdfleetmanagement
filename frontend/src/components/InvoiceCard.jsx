@@ -2,6 +2,8 @@
 import React from "react";
 
 // Note: Buttons are given the "no-print" class so they are only visible on the screen, not in print.
+import { formatCurrency } from "../utils/currency";
+
 export default function InvoiceCard({
     bill,
     onEdit,
@@ -31,7 +33,7 @@ export default function InvoiceCard({
                         <ul className="list-disc pl-5 space-y-1 text-sm">
                             {bill.services?.map((srv, idx) => (
                                 <li key={idx}>
-                                    {srv.description} — €{Number(srv.price || 0).toLocaleString()}
+                                    {srv.description} — {formatCurrency(srv.price)}
                                 </li>
                             ))}
                         </ul>
@@ -50,7 +52,7 @@ export default function InvoiceCard({
                     </div>
 
                     <div className="mt-3 font-bold text-right text-lg">
-                        💰 Amount: €{Number(bill.totalPrice || 0).toLocaleString()}
+                        💰 Amount: {formatCurrency(bill.totalPrice)}
                     </div>
                 </div>
 

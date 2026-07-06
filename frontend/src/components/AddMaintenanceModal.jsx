@@ -51,7 +51,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
 
     const updateService = (index, field, value) => {
         const updated = [...form.services];
-        updated[index][field] = field === "cost" ? parseInt(value) : value;
+        updated[index][field] = field === "cost" ? parseFloat(value) : value;
         setForm(prev => ({ ...prev, services: updated }));
     };
 
@@ -66,7 +66,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
             return;
         }
         if (form.services.some((service) => !service.description?.trim() || Number.isNaN(Number(service.cost)) || Number(service.cost) < 0)) {
-            setErrorMessage("Each service needs a description and a non-negative cost.");
+            setErrorMessage("Each service needs a description and a non-negative XCD cost.");
             return;
         }
         if (form.odometerReading !== "" && Number(form.odometerReading) < 0) {
@@ -184,7 +184,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
                                 type="number"
                                 value={srv.cost}
                                 onChange={(e) => updateService(idx, "cost", e.target.value)}
-                                placeholder="Cost"
+                                placeholder="Cost (XCD)"
                                 className="w-24 border p-2 rounded"
                             />
                             <button onClick={() => removeService(idx)} className="text-brand-error hover:text-red-800">🗑️</button>

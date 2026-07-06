@@ -6,6 +6,7 @@ import AddMaintenanceModal from "../components/AddMaintenanceModal";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import InvoiceModal from "../components/InvoiceModal";
+import { formatCurrency } from "../utils/currency";
 
 export default function MaintenanceList() {
     const [records, setRecords] = useState([]);
@@ -314,8 +315,7 @@ export default function MaintenanceList() {
                                                     {record.services && record.services.length > 0 ? (
                                                         record.services.map((service, index) => (
                                                             <li key={index}>
-                                                                {service.description || "Service"} — €
-                                                                {service.cost || 0}
+                                                                {service.description || "Service"} — {formatCurrency(service.cost)}
                                                             </li>
                                                         ))
                                                     ) : (

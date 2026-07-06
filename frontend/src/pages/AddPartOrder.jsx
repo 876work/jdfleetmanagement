@@ -68,7 +68,7 @@ export default function AddPartOrder() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Amount</label>
+                    <label className="block text-sm font-medium">Amount (XCD)</label>
                     <input
                         type="number"
                         name="amount"

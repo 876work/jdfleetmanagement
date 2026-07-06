@@ -4,342 +4,252 @@ import axios from "../utils/axiosInstance";
 import { useAuth } from "../context/useAuth";
 import { motion } from "framer-motion";
 
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+});
+
+const formatDate = (dateValue) => {
+    if (!dateValue) return "No date recorded";
+    return new Date(dateValue).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+};
+
+const vehicleTitle = (vehicle = {}) =>
+    [vehicle.brand, vehicle.model, vehicle.plateNumber].filter(Boolean).join(" • ") || "Unknown vehicle";
+
 export default function Dashboard() {
     const { auth } = useAuth();
     const navigate = useNavigate();
-
-    const [stats, setStats] = useState({
-        vehicles: 0,
-        maintenances: 0,
-        invoices: 0,
-    });
+    const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
-
-    // recent lists + states
-    const [recentMaint, setRecentMaint] = useState([]);
-    const [recentBills, setRecentBills] = useState([]);
-    const [loadingRecent, setLoadingRecent] = useState(true);
-    const [recentError, setRecentError] = useState(null);
-
-    //Low stock state
-    const [lowStockParts, setLowStockParts] = useState([]);
-    const [loadingStock, setLoadingStock] = useState(true);
-    const [stockError, setStockError] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const [vRes, mRes, bRes] = await Promise.all([
-                    axios.get("/api/vehicles"),
-                    axios.get("/api/maintenance"),
-                    axios.get("/api/bills"),
-                ]);
+        const fetchDashboard = async () => {
+            setLoading(true);
+            setError(null);
 
-                setStats({
-                    vehicles: vRes.data?.length || 0,
-                    maintenances: mRes.data?.length || 0,
-                    invoices: bRes.data?.length || 0,
-                });
+            try {
+                const res = await axios.get("/api/dashboard/summary?limit=5&lowStockThreshold=5&attentionDays=180");
+                setDashboard(res.data);
             } catch (err) {
-                // NOTE: keep silent, can add toast later
-                console.error("Dashboard stats error:", err);
+                console.error("Dashboard summary error:", err);
+                setError("Unable to load the dashboard summary right now.");
             } finally {
                 setLoading(false);
             }
         };
 
-        const fetchRecent = async () => {
-            setLoadingRecent(true);
-            setRecentError(null);
-            try {
-                // request 5 most recent items
-                const [maintRes, billsRes] = await Promise.all([
-                    axios.get("/api/maintenance/recent?limit=5"),
-                    axios.get("/api/bills/recent?limit=5"),
-                ]);
-
-                setRecentMaint(Array.isArray(maintRes.data) ? maintRes.data : []);
-                setRecentBills(Array.isArray(billsRes.data) ? billsRes.data : []);
-            } catch (err) {
-                console.error("Dashboard recent error:", err);
-
-                setRecentError("Unable to load recent fleet activity.");
-            } finally {
-                setLoadingRecent(false);
-            }
-        };
-
-        const fetchLowStock = async () => {
-            setLoadingStock(true);
-            setStockError(null);
-
-            try {
-                const token = auth?.token;
-                const res = await axios.get("/api/parts/low-stock?threshold=5", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setLowStockParts(res.data || []);
-            } catch (err) {
-                console.error("Error fetching low stock parts", err);
-                setStockError("Failed to fetch low stock parts");
-            } finally {
-                setLoadingStock(false);
-            }
-        };
-
-
-        fetchStats();
-        fetchRecent();
-        fetchLowStock();
+        fetchDashboard();
     }, []);
 
+    const counts = dashboard?.counts || {};
+    const recentMaintenance = dashboard?.recentMaintenance || [];
+    const recentInvoices = dashboard?.recentInvoices || [];
+    const vehiclesNeedingAttention = dashboard?.vehiclesNeedingAttention || [];
+    const lowStockParts = dashboard?.lowStockParts || [];
+    const lowStockThreshold = dashboard?.settings?.lowStockThreshold || 5;
 
     return (
         <div className="min-h-screen bg-brand-soft">
-            {/* Header */}
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                <div className="flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-brand-deep">JD Fleet Management Dashboard</h1>
-                        <p className="mt-2 max-w-3xl text-brand-slate">A clear overview of fleet activity, vehicle status, driver assignments, maintenance, and operational performance.</p>
-                        <p className="text-brand-slate mt-3">
+                        <p className="text-sm font-semibold uppercase tracking-wide text-brand-gold">Fleet command center</p>
+                        <h1 className="mt-1 text-3xl font-bold text-brand-deep sm:text-4xl">JD Fleet Management Dashboard</h1>
+                        <p className="mt-2 max-w-3xl text-brand-slate">
+                            Track fleet size, owners, service work, billing activity, vehicles that may be overdue for service, and parts that need restocking.
+                        </p>
+                        <p className="mt-3 text-brand-slate">
                             {auth?.user?.username ? `Welcome, ${auth.user.username}!` : "Welcome!"}
                         </p>
                     </div>
 
-                    {/* Quick Actions */}
-                    <div className="flex gap-2">
-                        {/* NOTE: We navigate to existing pages */}
-                        <button
-                            onClick={() => navigate("/vehicles")}
-                            className="bg-brand-navy text-white px-4 py-2 rounded-lg hover:bg-brand-deep"
-                        >
-                            🚗 Vehicles
-                        </button>
-                        <button
-                            onClick={() => navigate("/maintenance")}
-                            className="bg-brand-gold text-white px-4 py-2 rounded-lg hover:bg-brand-highlight"
-                        >
-                            🛠️ Maintenance
-                        </button>
-                        <button
-                            onClick={() => navigate("/invoices")}
-                            className="bg-brand-deep text-white px-4 py-2 rounded-lg hover:bg-brand-navy"
-                        >
-                            📊 Reports
-                        </button>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:w-auto">
+                        <ActionButton onClick={() => navigate("/vehicles")}>🚗 Vehicles</ActionButton>
+                        <ActionButton onClick={() => navigate("/maintenance")} variant="gold">🛠️ Maintenance</ActionButton>
+                        <ActionButton onClick={() => navigate("/invoices")} variant="deep">🧾 Invoices</ActionButton>
                     </div>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-                    <StatCard
-                        title="Vehicles"
-                        value={stats.vehicles}
-                        subtitle="Active fleet assets"
-                        icon="🚘"
-                        loading={loading}
-                        color="from-brand-navy to-brand-deep"
-                    />
-                    <StatCard
-                        title="Maintenance"
-                        value={stats.maintenances}
-                        subtitle="All records"
-                        icon="🛠️"
-                        loading={loading}
-                        color="from-brand-gold to-brand-highlight"
-                    />
-                    <StatCard
-                        title="Reports"
-                        value={stats.invoices}
-                        subtitle="Operational documents"
-                        icon="🧾"
-                        loading={loading}
-                        color="from-brand-deep to-brand-navy"
-                    />
+                {error && (
+                    <div className="mt-6 rounded-xl border border-brand-error bg-white p-4 text-sm text-brand-error shadow-sm">
+                        {error}
+                    </div>
+                )}
+
+                <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <StatCard title="Total Vehicles" value={counts.vehicles} subtitle="Fleet assets" icon="🚘" loading={loading} color="from-brand-navy to-brand-deep" />
+                    <StatCard title="Customers / Owners" value={counts.customers} subtitle="Vehicle owners" icon="👥" loading={loading} color="from-brand-deep to-brand-navy" />
+                    <StatCard title="Maintenance Records" value={counts.maintenanceRecords} subtitle="Service history" icon="🛠️" loading={loading} color="from-brand-gold to-brand-highlight" />
+                    <StatCard title="Invoices" value={counts.invoices} subtitle="Active bills" icon="🧾" loading={loading} color="from-brand-highlight to-brand-gold" />
                 </div>
 
-                {/* Recent Section (placeholder) */}
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="bg-white border border-brand-border rounded-xl p-4 shadow-sm"
-                    >
-                        <h2 className="font-semibold text-lg mb-3 text-brand-deep">Recent Maintenance</h2>
+                <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
+                    <Panel title="Recent Maintenance Activity" actionLabel="View all" onAction={() => navigate("/maintenance")}>
+                        {loading ? <ListSkeleton /> : <MaintenanceList records={recentMaintenance} />}
+                    </Panel>
 
-                        {loadingRecent ? (
-                            <ListSkeleton />
-                        ) : recentError ? (
-                            <p className="text-brand-error text-sm">{recentError}</p>
-                        ) : recentMaint.length === 0 ? (
-                            <p className="text-brand-slate text-sm">No maintenance records available.</p>
-                        ) : (
-                            <ul className="divide-y">
-                                {recentMaint.map((rec) => {
-                                    // derive title and totals safely
-                                    const v = rec?.vehicleId || {};
-                                    const title = v.brand
-                                        ? `${v.brand} ${v.model || ""} • ${v.plateNumber || ""}`
-                                        : `Maintenance ${rec?._id?.slice(-6) || ""}`;
-                                    const date = rec?.serviceDate ? new Date(rec.serviceDate) : null;
-                                    const total = Array.isArray(rec?.services)
-                                        ? rec.services.reduce((s, it) => s + (Number(it.cost) || 0), 0)
-                                        : 0;
+                    <Panel title="Recent Invoices" actionLabel="View invoices" onAction={() => navigate("/invoices")}>
+                        {loading ? <ListSkeleton /> : <InvoiceList invoices={recentInvoices} />}
+                    </Panel>
 
-                                    return (
-                                        <li key={rec._id} className="py-3">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <p className="font-medium text-brand-text">{title}</p>
-                                                    <p className="text-xs text-brand-slate mt-0.5">
-                                                        {date ? date.toLocaleDateString() : "No date"} • {rec?.services?.length || 0} services
-                                                    </p>
-                                                </div>
-                                                <div className="text-sm font-semibold text-brand-slate">
-                                                    {total.toLocaleString()} $
-                                                </div>
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+                    <Panel title="Vehicles Needing Attention" actionLabel="Manage vehicles" onAction={() => navigate("/vehicles")} tone="warning">
+                        {loading ? <ListSkeleton /> : <AttentionList vehicles={vehiclesNeedingAttention} />}
+                    </Panel>
 
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.25, delay: 0.05 }}
-                        className="bg-white border border-brand-border rounded-xl p-4 shadow-sm"
-                    >
-                        <h2 className="font-semibold text-lg mb-3 text-brand-deep">Recent Reports</h2>
-                        {loadingRecent ? (
-                            <ListSkeleton />
-                        ) : recentError ? (
-                            <p className="text-brand-error text-sm">{recentError}</p>
-                        ) : recentBills.length === 0 ? (
-                            <p className="text-brand-slate text-sm">No reports available at this time.</p>
-                        ) : (
-                            <ul className="divide-y">
-                                {recentBills.map((bill) => {
-                                    const v = bill?.vehicle || {};
-                                    const c = bill?.customer || {};
-                                    const title = v.brand
-                                        ? `${v.brand} ${v.model || ""} • ${v.plateNumber || ""}`
-                                        : `Invoice ${bill?._id?.slice(-6) || ""}`;
-                                    const name =
-                                        c.firstName || c.lastName
-                                            ? `${c.firstName || ""} ${c.lastName || ""}`.trim()
-                                            : "Unknown customer";
-                                    const date = bill?.date ? new Date(bill.date) : null;
-                                    const total = Number(bill?.totalPrice || bill?.total || 0);
-
-                                    return (
-                                        <li key={bill._id} className="py-3">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <p className="font-medium text-brand-text">{title}</p>
-                                                    <p className="text-xs text-brand-slate mt-0.5">
-                                                        {name} • {date ? date.toLocaleDateString() : "No date"}
-                                                    </p>
-                                                </div>
-                                                <div className="text-sm font-semibold text-brand-slate">
-                                                    {total.toLocaleString()} $
-                                                </div>
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-
-                    </motion.div>
-                    <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="bg-brand-tint border-l-4 border-brand-warning p-4 shadow-md rounded-lg"
-                    >
-                        <div className="flex items-center mb-2">
-                            <span className="text-brand-warning text-xl mr-2">⚠️</span>
-                            <h2 className="font-semibold text-lg text-brand-warning">Low Stock Parts</h2>
-                        </div>
-
-                        {loadingStock ? (
-                            <ListSkeleton />
-                        ) : stockError ? (
-                            <p className="text-brand-error text-sm">{stockError}</p>
-                        ) : lowStockParts.length === 0 ? (
-                            <p className="text-brand-slate text-sm">Fleet parts inventory is sufficiently stocked.</p>
-                        ) : (
-                            <ul className="divide-y divide-brand-neutral">
-                                {lowStockParts.map((part) => (
-                                    <li key={part._id} className="py-2 flex justify-between items-center">
-                                        <span className="font-medium text-brand-warning">{part.name}</span>
-                                        <span className="bg-brand-tint text-brand-warning text-sm px-2 py-1 rounded-full">
-                                            {part.quantity} left
-                                        </span>
-                                        <button
-                                            onClick={() => navigate(`/parts/${part._id}/order`)}
-                                            className="ml-2 bg-brand-gold text-white px-2 py-1 text-xs rounded hover:bg-brand-highlight"
-                                        >
-                                            Order a Part
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </motion.div>
-
-
+                    <Panel title={`Low Stock Parts (< ${lowStockThreshold})`} tone="warning">
+                        {loading ? <ListSkeleton /> : <LowStockList parts={lowStockParts} navigate={navigate} />}
+                    </Panel>
                 </div>
             </div>
         </div>
     );
 }
 
-/* ----------------------------------------------
- * Small, reusable Stat Card component
- * ---------------------------------------------- */
-function StatCard({ title, value, subtitle, icon, loading, color }) {
+function ActionButton({ children, onClick, variant = "navy" }) {
+    const classes = {
+        navy: "bg-brand-navy hover:bg-brand-deep",
+        gold: "bg-brand-gold hover:bg-brand-highlight",
+        deep: "bg-brand-deep hover:bg-brand-navy",
+    };
+
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-            className="bg-white rounded-2xl border border-brand-border shadow-sm overflow-hidden"
-        >
+        <button onClick={onClick} className={`${classes[variant]} rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition`}>
+            {children}
+        </button>
+    );
+}
+
+function StatCard({ title, value = 0, subtitle, icon, loading, color }) {
+    return (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden rounded-2xl border border-brand-border bg-white shadow-sm">
             <div className={`h-2 bg-gradient-to-r ${color}`} />
             <div className="p-5">
-                <div className="flex items-center justify-between">
-                    <div className="text-2xl">{icon}</div>
-                    <div className="text-xs text-brand-slate">{subtitle}</div>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="text-3xl">{icon}</div>
+                    <div className="text-right text-xs font-medium uppercase tracking-wide text-brand-slate">{subtitle}</div>
                 </div>
-                <h3 className="mt-3 text-brand-slate font-semibold">{title}</h3>
-                <div className="mt-1">
-                    {loading ? (
-                        // NOTE: Simple skeleton shimmer
-                        <div className="h-8 w-16 bg-brand-neutral animate-pulse rounded" />
-                    ) : (
-                        <p className="text-3xl font-bold">{value}</p>
-                    )}
-                </div>
+                <h3 className="mt-4 font-semibold text-brand-slate">{title}</h3>
+                {loading ? <div className="mt-2 h-9 w-20 animate-pulse rounded bg-brand-neutral" /> : <p className="mt-1 text-4xl font-bold text-brand-text">{value}</p>}
             </div>
         </motion.div>
     );
 }
 
+function Panel({ title, children, actionLabel, onAction, tone = "default" }) {
+    const borderClass = tone === "warning" ? "border-l-4 border-l-brand-warning" : "";
+
+    return (
+        <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className={`rounded-xl border border-brand-border bg-white p-4 shadow-sm ${borderClass}`}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold text-brand-deep">{title}</h2>
+                {actionLabel && <button onClick={onAction} className="text-sm font-semibold text-brand-navy hover:text-brand-deep">{actionLabel}</button>}
+            </div>
+            {children}
+        </motion.section>
+    );
+}
+
+function MaintenanceList({ records }) {
+    if (!records.length) return <EmptyState>No maintenance records available.</EmptyState>;
+
+    return (
+        <ul className="divide-y divide-brand-neutral">
+            {records.map((record) => {
+                const total = (record.services || []).reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+
+                return (
+                    <li key={record._id} className="py-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p className="font-medium text-brand-text">{vehicleTitle(record.vehicleId)}</p>
+                                <p className="mt-1 text-xs text-brand-slate">{formatDate(record.serviceDate)} • {record.services?.length || 0} service items</p>
+                            </div>
+                            <p className="text-sm font-semibold text-brand-slate">{currencyFormatter.format(total)}</p>
+                        </div>
+                    </li>
+                );
+            })}
+        </ul>
+    );
+}
+
+function InvoiceList({ invoices }) {
+    if (!invoices.length) return <EmptyState>No invoices available.</EmptyState>;
+
+    return (
+        <ul className="divide-y divide-brand-neutral">
+            {invoices.map((invoice) => {
+                const customerName = [invoice.customer?.firstName, invoice.customer?.lastName].filter(Boolean).join(" ") || "Unknown customer";
+                const total = Number(invoice.totalPrice || invoice.total || 0);
+
+                return (
+                    <li key={invoice._id} className="py-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p className="font-medium text-brand-text">{vehicleTitle(invoice.vehicle)}</p>
+                                <p className="mt-1 text-xs text-brand-slate">{customerName} • {formatDate(invoice.date)}</p>
+                            </div>
+                            <p className="text-sm font-semibold text-brand-slate">{currencyFormatter.format(total)}</p>
+                        </div>
+                    </li>
+                );
+            })}
+        </ul>
+    );
+}
+
+function AttentionList({ vehicles }) {
+    if (!vehicles.length) return <EmptyState>No vehicles need attention based on existing maintenance records.</EmptyState>;
+
+    return (
+        <ul className="divide-y divide-brand-neutral">
+            {vehicles.map((item) => (
+                <li key={item._id} className="py-3">
+                    <p className="font-medium text-brand-text">{item.title}</p>
+                    <p className="mt-1 text-xs text-brand-slate">{item.reason}{item.lastServiceDate ? ` • Last serviced ${formatDate(item.lastServiceDate)}` : ""}</p>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function LowStockList({ parts, navigate }) {
+    if (!parts.length) return <EmptyState>Parts inventory is sufficiently stocked.</EmptyState>;
+
+    return (
+        <ul className="divide-y divide-brand-neutral">
+            {parts.map((part) => (
+                <li key={part._id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="font-medium text-brand-text">{part.name}</p>
+                        <p className="mt-1 text-xs text-brand-slate">{part.quantity} in stock</p>
+                    </div>
+                    <button onClick={() => navigate(`/parts/${part._id}/order`)} className="rounded-lg bg-brand-gold px-3 py-2 text-xs font-semibold text-white hover:bg-brand-highlight">
+                        Order part
+                    </button>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function EmptyState({ children }) {
+    return <p className="rounded-lg bg-brand-soft p-3 text-sm text-brand-slate">{children}</p>;
+}
+
 function ListSkeleton() {
-    // simple 4-row skeleton loader
     return (
         <ul className="space-y-3">
             {[...Array(4)].map((_, i) => (
                 <li key={i} className="animate-pulse">
-                    <div className="h-4 bg-brand-neutral rounded w-2/3" />
-                    <div className="h-3 bg-brand-soft rounded w-1/3 mt-2" />
+                    <div className="h-4 w-2/3 rounded bg-brand-neutral" />
+                    <div className="mt-2 h-3 w-1/3 rounded bg-brand-soft" />
                 </li>
             ))}
         </ul>

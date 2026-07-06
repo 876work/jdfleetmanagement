@@ -55,3 +55,57 @@ a {
   .app-table th { @apply whitespace-nowrap bg-brand-soft px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-brand-deep; }
   .app-table td { @apply whitespace-nowrap px-4 py-3 text-brand-slate; }
 }
+
+@layer components {
+  .invoice-page-shell { @apply bg-slate-100; }
+  .invoice-detail-container { @apply max-w-5xl; }
+  .invoice-document { @apply mx-auto max-w-5xl overflow-hidden rounded-2xl border border-brand-border bg-white text-brand-text shadow-xl; }
+  .invoice-document-header { @apply flex flex-col gap-6 border-b-4 border-brand-gold bg-brand-deep p-6 text-white sm:flex-row sm:items-start sm:justify-between sm:p-8; }
+  .invoice-brand-block { @apply flex items-center gap-4; }
+  .invoice-logo { @apply h-16 w-16 rounded-xl bg-white object-contain p-2 shadow-sm sm:h-20 sm:w-20; }
+  .invoice-logo-fallback { @apply flex h-16 w-40 flex-col justify-center rounded-xl bg-white px-4 text-brand-deep shadow-sm sm:h-20; }
+  .invoice-logo-fallback span { @apply text-lg font-extrabold leading-tight; }
+  .invoice-logo-fallback small { @apply text-xs font-semibold text-brand-slate; }
+  .invoice-brand-name { @apply text-xl font-extrabold tracking-tight sm:text-2xl; }
+  .invoice-brand-subtitle { @apply mt-1 text-sm text-slate-200; }
+  .invoice-title-block { @apply text-left sm:text-right; }
+  .invoice-title-block h1 { @apply text-3xl font-black uppercase tracking-[0.18em] sm:text-4xl; }
+  .invoice-title-block p { @apply mt-2 break-all text-sm text-slate-200; }
+  .invoice-status-badge { @apply mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide; }
+  .invoice-meta-grid { @apply grid gap-4 p-6 sm:grid-cols-3 sm:p-8; }
+  .invoice-info-card { @apply rounded-xl border border-brand-border bg-brand-soft p-4; }
+  .invoice-info-card span { @apply block text-xs font-bold uppercase tracking-wide text-brand-slate; }
+  .invoice-info-card strong { @apply mt-1 block text-base font-extrabold text-brand-deep; }
+  .invoice-info-card small { @apply mt-1 block text-sm text-brand-slate; }
+  .invoice-section { @apply mx-6 mb-6 sm:mx-8; }
+  .invoice-section h2 { @apply text-lg font-extrabold text-brand-deep; }
+  .invoice-section-heading { @apply mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between; }
+  .invoice-section-heading span { @apply text-xs font-bold uppercase tracking-wide text-brand-gold; }
+  .invoice-line-table-wrap { @apply overflow-x-auto rounded-xl border border-brand-border; }
+  .invoice-line-table { @apply min-w-full divide-y divide-brand-border text-sm; }
+  .invoice-line-table th { @apply bg-brand-soft px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-brand-deep; }
+  .invoice-line-table td { @apply px-4 py-4 align-top text-brand-text; }
+  .invoice-muted-panel { @apply rounded-xl border border-brand-border bg-slate-50 p-4 text-sm text-brand-slate; }
+  .invoice-parts-list { @apply mt-3 grid list-disc gap-1 pl-5 sm:grid-cols-2; }
+  .invoice-notes { @apply rounded-xl border-l-4 border-brand-gold bg-amber-50 p-4 text-sm text-brand-slate; }
+  .invoice-total-row { @apply mx-6 mb-6 flex flex-col gap-2 rounded-xl bg-brand-deep p-5 text-white sm:mx-8 sm:flex-row sm:items-center sm:justify-between; }
+  .invoice-total-row span { @apply text-sm font-bold uppercase tracking-wide text-slate-200; }
+  .invoice-total-row strong { @apply text-2xl font-black sm:text-3xl; }
+  .invoice-actions { @apply mx-6 mb-6 flex flex-col justify-end gap-3 border-t border-brand-border pt-5 sm:mx-8 sm:flex-row; }
+  .invoice-footer { @apply flex flex-col gap-1 border-t border-brand-border bg-brand-soft px-6 py-5 text-center text-sm text-brand-slate sm:px-8; }
+  .invoice-footer strong { @apply text-brand-deep; }
+  .invoice-print-overlay { @apply fixed inset-0 z-50 overflow-auto bg-slate-100 p-4 text-gray-900 sm:p-8; }
+}
+
+@media print {
+  @page { margin: 0.45in; }
+  html, body, #root { background: #ffffff !important; }
+  body * { visibility: hidden; }
+  .invoice-document, .invoice-document * { visibility: visible; }
+  .invoice-document { position: absolute; left: 0; top: 0; width: 100% !important; max-width: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+  .invoice-print-overlay { position: static !important; padding: 0 !important; background: #ffffff !important; }
+  .invoice-document-header { background: #0B1F3A !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .invoice-total-row { background: #0B1F3A !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .invoice-info-card, .invoice-line-table th, .invoice-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .no-print, .app-shell > nav, nav, header:not(.invoice-document-header), aside { display: none !important; visibility: hidden !important; }
+}

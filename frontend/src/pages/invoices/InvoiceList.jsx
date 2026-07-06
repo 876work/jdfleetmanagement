@@ -2,19 +2,8 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import InvoiceDocument, { formatInvoiceDate, formatInvoiceStatus, formatXcdCurrency, invoiceStatusClass } from "../../components/InvoiceDocument";
 
-const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} €`;
-
-const formatStatus = (status = "unpaid") =>
-    status.charAt(0).toUpperCase() + status.slice(1);
-
-const statusClass = (status = "unpaid") =>
-    ({
-        paid: "bg-green-100 text-green-800",
-        overdue: "bg-red-100 text-red-800",
-        cancelled: "bg-gray-200 text-gray-700",
-        unpaid: "bg-yellow-100 text-yellow-800",
-    }[status] || "bg-yellow-100 text-yellow-800");
 
 const InvoiceList = () => {
     const [bills, setBills] = useState([]);
@@ -216,7 +205,7 @@ const InvoiceList = () => {
 
                             {statusOptions.map((status) => (
                                 <option key={status} value={status}>
-                                    {formatStatus(status)}
+                                    {formatInvoiceStatus(status)}
                                 </option>
                             ))}
                         </select>
@@ -280,22 +269,22 @@ const InvoiceList = () => {
                                             : ""}
                                     </div>
 
-                                    <div>💰 Amount: {formatCurrency(bill.totalPrice)}</div>
+                                    <div>💰 Amount: {formatXcdCurrency(bill.totalPrice)}</div>
 
                                     <div>
                                         📅 Invoice Date:{" "}
                                         {bill.date
-                                            ? new Date(bill.date).toLocaleDateString()
+                                            ? formatInvoiceDate(bill.date)
                                             : "N/A"}
                                     </div>
 
                                     <div className="mt-1">
                                         <span
-                                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClass(
+                                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${invoiceStatusClass(
                                                 bill.paymentStatus
                                             )}`}
                                         >
-                                            {formatStatus(bill.paymentStatus)}
+                                            {formatInvoiceStatus(bill.paymentStatus)}
                                         </span>
                                     </div>
 
@@ -315,7 +304,7 @@ const InvoiceList = () => {
                                                 bill.services.map((service, index) => (
                                                     <li key={index}>
                                                         {service.description} —{" "}
-                                                        {formatCurrency(service.price)}
+                                                        {formatXcdCurrency(service.price)}
                                                     </li>
                                                 ))
                                             ) : (
@@ -347,6 +336,13 @@ const InvoiceList = () => {
 
                                 <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
                                     <button
+                                        onClick={() => navigate(`/invoices/${bill._id}`)}
+                                        className="btn-primary"
+                                    >
+                                        View
+                                    </button>
+
+                                    <button
                                         onClick={() => navigate(`/edit-bill/${bill._id}`)}
                                         className="btn-warning"
                                     >
@@ -373,103 +369,33 @@ const InvoiceList = () => {
                 )}
 
                 {printBill && (
-                    <div
-                        className="fixed inset-0 z-50 overflow-auto bg-white p-10 text-gray-900"
-                        ref={printRef}
-                    >
-                        <div className="mx-auto max-w-xl rounded border p-6 shadow">
-                            <h2 className="mb-4 text-center text-xl font-bold">
-                                🧾 Invoice Details
-                            </h2>
+                    <div className="invoice-print-overlay" ref={printRef}>
+                        <InvoiceDocument
+                            bill={printBill}
+                            className="mx-auto"
+                            actions={
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPrintBill(null)}
+                                        className="btn-secondary"
+                                    >
+                                        Cancel
+                                    </button>
 
-                            <p>
-                                <strong>🧍 Customer:</strong>{" "}
-                                {printBill.customer?.firstName}{" "}
-                                {printBill.customer?.lastName}
-                            </p>
-
-                            <p>
-                                <strong>🚗 Vehicle:</strong>{" "}
-                                {printBill.vehicle?.brand} {printBill.vehicle?.model}{" "}
-                                {printBill.vehicle?.plateNumber
-                                    ? `(${printBill.vehicle.plateNumber})`
-                                    : ""}
-                            </p>
-
-                            <p>
-                                <strong>📅 Invoice Date:</strong>{" "}
-                                {printBill.date
-                                    ? new Date(printBill.date).toLocaleDateString()
-                                    : "N/A"}
-                            </p>
-
-                            <p>
-                                <strong>💳 Payment Status:</strong>{" "}
-                                {formatStatus(printBill.paymentStatus)}
-                            </p>
-
-                            <div className="mt-4">
-                                <h4 className="mb-2 font-semibold">Services:</h4>
-
-                                <ul className="list-disc space-y-1 pl-5 text-sm">
-                                    {printBill.services?.length > 0 ? (
-                                        printBill.services.map((service, index) => (
-                                            <li key={index}>
-                                                {service.description} —{" "}
-                                                {formatCurrency(service.price)}
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li className="text-gray-400">None</li>
-                                    )}
-                                </ul>
-                            </div>
-
-                            <div className="mt-4">
-                                <h4 className="mb-2 font-semibold">Parts Used:</h4>
-
-                                <ul className="list-disc space-y-1 pl-5 text-sm">
-                                    {Array.isArray(printBill.maintenanceId?.partsUsed) &&
-                                    printBill.maintenanceId.partsUsed.length > 0 ? (
-                                        printBill.maintenanceId.partsUsed.map((part, index) => (
-                                            <li key={index}>{part.name}</li>
-                                        ))
-                                    ) : (
-                                        <li className="text-gray-400">None</li>
-                                    )}
-                                </ul>
-                            </div>
-
-                            {printBill.notes && (
-                                <p className="mt-4">
-                                    <strong>Notes:</strong> {printBill.notes}
-                                </p>
-                            )}
-
-                            <p className="mt-4 text-right text-lg font-bold">
-                                💰 Amount Due: {formatCurrency(printBill.totalPrice)}
-                            </p>
-
-                            <div className="no-print mt-6 flex justify-between gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setPrintBill(null)}
-                                    className="rounded bg-gray-300 px-5 py-2 text-brand-text hover:bg-gray-400"
-                                >
-                                    ❌ Cancel
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        window.print();
-                                        setTimeout(() => setPrintBill(null), 500);
-                                    }}
-                                    className="rounded bg-brand-navy px-6 py-2 text-white hover:bg-brand-deep"
-                                >
-                                    🖨️ Print Now
-                                </button>
-                            </div>
-                        </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            window.print();
+                                            setTimeout(() => setPrintBill(null), 500);
+                                        }}
+                                        className="btn-primary"
+                                    >
+                                        Print Invoice
+                                    </button>
+                                </>
+                            }
+                        />
                     </div>
                 )}
             </main>

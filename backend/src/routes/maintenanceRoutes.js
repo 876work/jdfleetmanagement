@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { denyStaff } from '../middlewares/permissions.js';
 import {
     createMaintenanceRecord,
     getAllMaintenanceRecords,
@@ -32,6 +33,6 @@ router.get('/', authMiddleware, getAllMaintenanceRecords);
 router.get('/recent', authMiddleware, getRecentMaintenances);
 router.get("/:id", getMaintenanceById);
 router.put("/:id", updateMaintenance);
-router.delete('/:id', deleteMaintenance);
+router.delete('/:id', denyStaff('Staff users cannot delete maintenance records. Please contact an admin.'), deleteMaintenance);
 
 export default router;

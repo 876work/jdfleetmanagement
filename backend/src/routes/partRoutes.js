@@ -1,17 +1,51 @@
 // backend/src/routes/partRoutes.js
 import express from "express";
-import * as partController from "../controllers/partController.js";
+import {
+  createPart,
+  getAllParts,
+  getPartById,
+  updatePart,
+  addPartOrder,
+  getLowStockParts,
+  deletePart,
+} from "../controllers/partController.js";
+
+import { denyStaff } from "../middlewares/permissions.js";
 
 const router = express.Router();
 
-router.post("/", partController.createPart);
-router.get("/", partController.getAllParts);
-router.get("/low-stock", partController.getLowStockParts);
-router.get("/:id", partController.getPartById);
-router.put("/:id", partController.updatePart);
-router.delete("/:id", partController.deletePart);
+router.post(
+  "/",
+  denyStaff("Staff users cannot create parts. Please contact an admin."),
+  createPart
+);
 
-//record purchase order & increase stock
-router.post("/:id/order", partController.addPartOrder);
+router.get("/", getAllParts);
+
+router.get("/low-stock", getLowStockParts);
+
+router.get("/:id", getPartById);
+
+router.put(
+  "/:id",
+  denyStaff(
+    "Staff users cannot edit parts or change inventory stock quantities. Please contact an admin."
+  ),
+  updatePart
+);
+
+router.delete(
+  "/:id",
+  denyStaff("Staff users cannot delete parts. Please contact an admin."),
+  deletePart
+);
+
+router.post(
+  "/:id/order",
+  denyStaff(
+    "Staff users cannot directly change inventory stock quantities. Please contact an admin."
+  ),
+  addPartOrder
+);
 
 export default router;

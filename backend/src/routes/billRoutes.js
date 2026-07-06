@@ -12,6 +12,7 @@ import {
 } from '../controllers/billController.js';
 
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { denyStaff } from '../middlewares/permissions.js';
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.get("/by-maintenance/:maintenanceId", getBillByMaintenanceId);
 
 router.get('/:id', getBillById);
 router.put('/:id', authMiddleware, updateBill);
-router.delete('/:id', authMiddleware, deleteBill);
-router.patch('/:id/archive', authMiddleware, archiveBill);
+router.delete('/:id', authMiddleware, denyStaff('Staff users cannot delete invoices. Please contact an admin.'), deleteBill);
+router.patch('/:id/archive', authMiddleware, denyStaff('Staff users cannot archive invoices. Please contact an admin.'), archiveBill);
 
 export default router;

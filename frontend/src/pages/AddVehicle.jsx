@@ -4,6 +4,8 @@ import { getApiErrorMessage } from "../utils/errorMessages";
 import { useNavigate } from "react-router-dom";
 import CategoryModal from "../components/CategoryModal";
 import OwnerModal from "../components/OwnerModal";
+import { useAuth } from "../context/useAuth";
+import { isAdmin } from "../utils/permissions";
 
 export default function AddVehicle() {
   const [formData, setFormData] = useState({
@@ -22,6 +24,8 @@ export default function AddVehicle() {
   const [owners, setOwners] = useState([]);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const { auth } = useAuth();
+  const admin = isAdmin(auth);
 
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showOwnerModal, setShowOwnerModal] = useState(false);
@@ -99,7 +103,7 @@ export default function AddVehicle() {
                 <option key={cat._id} value={cat._id}>{cat.name}</option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowCategoryModal(true)} className="btn-ghost mt-2 px-0">+ Add New Category</button>
+            {admin && <button type="button" onClick={() => setShowCategoryModal(true)} className="btn-ghost mt-2 px-0">+ Add New Category</button>}
           </div>
           <div>
             <select name="ownerId" value={formData.ownerId} onChange={handleChange} className="form-control" required>

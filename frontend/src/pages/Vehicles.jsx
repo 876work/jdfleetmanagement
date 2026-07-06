@@ -73,12 +73,6 @@ export default function Vehicles() {
       const res = await axios.put(`/api/vehicles/${updatedVehicle._id}`, updatedVehicle);
       const updated = res.data;
 
-      const owner = owners.find(o => o._id === updated.ownerId);
-      const category = categories.find(c => c._id === updated.categoryId);
-
-      updated.ownerId = owner;
-      updated.categoryId = category;
-
       setVehicles(prev =>
         prev.map(v => (v._id === updated._id ? updated : v))
       );
@@ -127,7 +121,7 @@ export default function Vehicles() {
                 className="w-full text-left flex items-center justify-between px-4 py-3 hover:bg-brand-soft transition"
               >
                 <div className="font-semibold text-lg flex items-center gap-2">
-                  {isOpen ? "➖" : "➕"} 🚘 {vehicle.brand} – {vehicle.model}
+                  {isOpen ? "➖" : "➕"} 🚘 {vehicle.name || `${vehicle.brand} – ${vehicle.model}`}
                 </div>
               </button>
 
@@ -141,10 +135,16 @@ export default function Vehicles() {
                     transition={{ duration: 0.3 }}
                     className="px-6 pb-4 pt-2 overflow-hidden text-sm text-brand-slate"
                   >
+                    <p className="mb-1"><span className="font-medium">🏷️ Label:</span> {vehicle.name || "—"}</p>
                     <p className="mb-1"><span className="font-medium">🆔 Plate:</span> {vehicle.plateNumber}</p>
+                    <p className="mb-1"><span className="font-medium">🏭 Make:</span> {vehicle.brand}</p>
+                    <p className="mb-1"><span className="font-medium">🚙 Model:</span> {vehicle.model}</p>
                     <p className="mb-1"><span className="font-medium">📅 Year:</span> {vehicle.year}</p>
+                    <p className="mb-1"><span className="font-medium">📌 Status:</span> <span className="capitalize">{vehicle.status || "active"}</span></p>
                     <p className="mb-1"><span className="font-medium">👤 Owner:</span> {owner?.firstName} {owner?.lastName}</p>
-                    <p className="mb-3"><span className="font-medium">📁 Category:</span> {category?.name}</p>
+                    <p className="mb-1"><span className="font-medium">📁 Category:</span> {category?.name}</p>
+                    <p className="mb-1"><span className="font-medium">🗓️ Date Added:</span> {vehicle.dateAdded ? new Date(vehicle.dateAdded).toLocaleDateString() : (vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleDateString() : "—")}</p>
+                    <p className="mb-3"><span className="font-medium">📝 Notes:</span> {vehicle.notes || "—"}</p>
 
                     <div className="flex gap-3">
                       <button

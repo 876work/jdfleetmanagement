@@ -38,6 +38,7 @@ export default function TopNav() {
                     <AppLink to="/vehicles">Vehicles</AppLink>
                     <AppLink to="/maintenance">Maintenance</AppLink>
                     <AppLink to="/invoices">Reports</AppLink>
+                    {auth?.user?.role === "admin" && <AppLink to="/users">Users</AppLink>}
                 </nav>
 
                 <div className="hidden items-center gap-3 md:flex">

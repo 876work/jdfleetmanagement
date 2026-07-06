@@ -11,6 +11,7 @@ import billRoutes from './routes/billRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import partRoutes from './routes/partRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 import './models/index.js';
 
@@ -66,6 +67,7 @@ app.use('/api/bills', billRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/parts', partRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'JD Fleet Management API is running' });

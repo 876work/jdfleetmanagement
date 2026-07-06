@@ -13,6 +13,7 @@ import ArchivedInvoices from "./pages/invoices/ArchivedInvoices";
 import Dashboard from "./pages/Dashboard";
 import AddPartOrder from "./pages/AddPartOrder";
 import Register from "./pages/Register";
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -103,6 +104,14 @@ function App() {
         element={
           <ProtectedRoute>
             <AddPartOrder />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Users />
           </ProtectedRoute>
         }
       />

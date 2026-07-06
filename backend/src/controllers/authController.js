@@ -13,12 +13,12 @@ const generateToken = (user) => {
 // POST /api/auth/register
 export const register = async (req, res) => {
   try {
-    const { username, passwordHash, role } = req.body;
+    const { username, passwordHash } = req.body;
 
     const existing = await User.findOne({ username });
     if (existing) return res.status(400).json({ message: 'Username already exists' });
 
-    const user = new User({ username, passwordHash, role });
+    const user = new User({ username, passwordHash, role: 'staff' });
     await user.save();
 
     const token = generateToken(user);

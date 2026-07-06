@@ -74,6 +74,10 @@ it('renders invoice list with mock data', async () => {
     await waitFor(() => {
         expect(screen.getByText(/🦾 Customer:\s*Ali Ahmadi/)).toBeInTheDocument();
         expect(screen.getAllByText(/X5 - B-MW1234/).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/150 €/).length).toBeGreaterThan(0);
+        expect(
+            screen.getAllByText((_, element) =>
+                element.textContent.includes('XCD $150.00')
+            ).length
+        ).toBeGreaterThan(0);
     });
 });

@@ -3,6 +3,7 @@ import Vehicle from "../models/Vehicle.js";
 import Bill from "../models/Bill.js";
 import Part from "../models/Part.js";
 import { isNonEmptyString, isValidObjectId, publicErrorMessage } from "../utils/validation.js";
+import { denyStaff, isStaff } from "../utils/permissions.js";
 
 const VALID_MAINTENANCE_STATUSES = ["scheduled", "in progress", "completed", "cancelled"];
 
@@ -114,6 +115,7 @@ export const createMaintenanceRecord = async (req, res) => {
 
 export const deleteMaintenance = async (req, res) => {
   try {
+    if (isStaff(req)) return denyStaff(res, 'Staff users cannot delete maintenance records.');
     const deleted = await MaintenanceRecord.findByIdAndDelete(req.params.id);
 
     if (!deleted) {
@@ -167,6 +169,13 @@ export const getMaintenanceById = async (req, res) => {
 
 export const updateMaintenance = async (req, res) => {
   try {
+    if (isStaff(req)) {
+      const current = await MaintenanceRecord.findById(req.params.id).lean();
+      if (!current) return res.status(404).json({ message: 'Maintenance record not found' });
+      if (!["scheduled", "in progress"].includes(current.status)) {
+        return denyStaff(res, 'Staff users can only update maintenance records while they are scheduled or in progress.');
+      }
+    }
     const payload = normalizeMaintenancePayload(req.body);
     const validationError = validateMaintenancePayload(payload);
 

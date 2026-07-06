@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import { isAdminUser } from "../utils/permissions";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import EditVehicleModal from "../components/EditVehicleModal";
 import ConfirmModal from "../components/ConfirmModal";
@@ -23,6 +24,7 @@ export default function Vehicles() {
 
   const navigate = useNavigate();
   const { auth } = useAuth();
+  const isAdmin = isAdminUser(auth);
 
   const fetchAll = async () => {
     try {
@@ -397,12 +399,14 @@ export default function Vehicles() {
                             Edit
                           </button>
 
-                          <button
-                            onClick={() => confirmDelete(vehicle)}
-                            className="btn-danger"
-                          >
-                            Delete
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => confirmDelete(vehicle)}
+                              className="btn-danger"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </Motion.div>
                     )}

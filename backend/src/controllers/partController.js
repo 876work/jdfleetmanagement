@@ -1,5 +1,6 @@
 import Part from "../models/Part.js";
 import { isNonEmptyString, publicErrorMessage } from "../utils/validation.js";
+import { denyStaff, isStaff } from "../utils/permissions.js";
 
 const validatePart = ({ name, price = 0, quantity = 0 }) => {
     if (!isNonEmptyString(name)) return "Part name is required.";
@@ -35,6 +36,13 @@ export const getPartById = async (req, res) => {
 
 export const updatePart = async (req, res) => {
     try {
+        if (isStaff(req)) {
+            const current = await Part.findById(req.params.id).lean();
+            if (!current) return res.status(404).json({ message: "Part not found." });
+            if (Number(req.body.quantity ?? current.quantity) !== Number(current.quantity)) {
+                return denyStaff(res, 'Staff users cannot directly change inventory stock quantities. Submit a part order or low stock note instead.');
+            }
+        }
         const validationError = validatePart(req.body);
         if (validationError) return res.status(400).json({ message: validationError });
         const part = await Part.findByIdAndUpdate(req.params.id, { name: req.body.name.trim(), price: Number(req.body.price || 0), quantity: Number(req.body.quantity || 0) }, { new: true, runValidators: true });
@@ -47,6 +55,7 @@ export const updatePart = async (req, res) => {
 
 export const addPartOrder = async (req, res) => {
     try {
+        if (isStaff(req)) return denyStaff(res, 'Staff users cannot directly change inventory stock quantities. Submit a low stock note to an admin instead.');
         const { supplier, amount, notes, orderDate } = req.body;
         const orderAmount = Number(amount);
         if (!isNonEmptyString(supplier)) return res.status(400).json({ message: "Supplier is required." });
@@ -69,4 +78,13 @@ export const getLowStockParts = async (req, res) => {
         const threshold = parseInt(req.query.threshold, 10) || 5;
         res.json(await Part.find({ quantity: { $lt: threshold } }));
     } catch { res.status(500).json({ message: "Unable to load low stock parts. Please try again." }); }
+};
+
+export const deletePart = async (req, res) => {
+    try {
+        if (isStaff(req)) return denyStaff(res, 'Staff users cannot delete parts.');
+        const deleted = await Part.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ message: 'Part not found.' });
+        res.json({ message: 'Part deleted.' });
+    } catch { res.status(400).json({ message: 'Invalid part identifier.' }); }
 };

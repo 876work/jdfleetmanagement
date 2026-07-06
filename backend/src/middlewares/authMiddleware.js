@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -19,4 +20,31 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-export { authMiddleware };
+const authorizeRoles = (...allowedRoles) => async (req, res, next) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  try {
+    let role = req.user.role;
+
+    if (!allowedRoles.includes(role)) {
+      const user = await User.findById(req.user.id).select('role');
+      role = user?.role;
+
+      if (role) {
+        req.user.role = role;
+      }
+    }
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({ message: 'Forbidden: insufficient role' });
+    }
+
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: 'Forbidden: insufficient role' });
+  }
+};
+
+export { authMiddleware, authorizeRoles };

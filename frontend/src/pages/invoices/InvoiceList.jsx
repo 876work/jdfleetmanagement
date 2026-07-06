@@ -8,7 +8,7 @@ import {
     staffCanEditInvoice,
 } from "../../utils/permissions";
 
-const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} €`;
+import { formatCurrency } from "../../utils/currency";
 
 const formatStatus = (status = "unpaid") =>
     status.charAt(0).toUpperCase() + status.slice(1);

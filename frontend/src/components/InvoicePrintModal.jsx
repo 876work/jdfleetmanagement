@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { formatCurrency } from "../utils/currency";
 
 const InvoicePrintModal = forwardRef(({ bill, onCancel, onConfirm }, ref) => {
     if (!bill) return null;
@@ -10,12 +11,12 @@ const InvoicePrintModal = forwardRef(({ bill, onCancel, onConfirm }, ref) => {
             <p><strong>Vehicle:</strong> {bill.vehicle?.model} – {bill.vehicle?.plateNumber}</p>
             <p><strong>Invoice Date:</strong> {new Date(bill.date).toLocaleDateString()}</p>
             <p><strong>Payment Status:</strong> {(bill.paymentStatus || "unpaid").charAt(0).toUpperCase() + (bill.paymentStatus || "unpaid").slice(1)}</p>
-            <p><strong>Amount:</strong> {Number(bill.totalPrice || 0).toLocaleString()} €</p>
+            <p><strong>Amount:</strong> {formatCurrency(bill.totalPrice)}</p>
             {bill.notes && <p><strong>Notes:</strong> {bill.notes}</p>}
 
             <ul className="mt-3 list-disc ml-6">
                 {bill.services?.map((srv, idx) => (
-                    <li key={idx}>{srv.description} — {Number(srv.price || 0).toLocaleString()} €</li>
+                    <li key={idx}>{srv.description} — {formatCurrency(srv.price)}</li>
                 ))}
             </ul>
 

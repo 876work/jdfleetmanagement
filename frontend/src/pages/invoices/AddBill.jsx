@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
+import { formatCurrency } from '../../utils/currency';
 import { useParams } from "react-router-dom";
 
 const AddBill = () => {
@@ -60,7 +61,7 @@ const AddBill = () => {
                 price: parseFloat(s.price.toString().replace(',', '.')) || 0,
             }));
             if (!data.customer || !data.vehicle || !data.date || cleanedServices.some((s) => !s.description || s.price < 0)) {
-                toast.error('Select a customer, vehicle, date, and enter valid service descriptions and prices.');
+                toast.error('Select a customer, vehicle, date, and enter valid service descriptions and XCD prices.');
                 return;
             }
 
@@ -150,7 +151,7 @@ const AddBill = () => {
                             />
                             <input
                                 type="number"
-                                placeholder="Price"
+                                placeholder="Unit Price (XCD)"
                                 {...register(`services.${index}.price`, { required: true })}
                                 className="w-32 border p-2 rounded"
                             />
@@ -209,7 +210,7 @@ const AddBill = () => {
 
                 {/* Total */}
                 <div className="font-bold text-lg">
-                    Total: {totalPrice.toLocaleString()} €
+                    Invoice Total (XCD): {formatCurrency(totalPrice)}
                 </div>
 
                 {/* Buttons */}

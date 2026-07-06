@@ -3,11 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance";
 import { useAuth } from "../context/useAuth";
 import { motion as Motion } from "framer-motion";
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-});
+import { formatCurrency } from "../utils/currency";
 
 const formatDate = (dateValue) => {
     if (!dateValue) return "No date recorded";
@@ -170,7 +166,7 @@ function MaintenanceList({ records }) {
                                 <p className="font-medium text-brand-text">{vehicleTitle(record.vehicleId)}</p>
                                 <p className="mt-1 text-xs text-brand-slate">{formatDate(record.serviceDate)} • {record.services?.length || 0} service items</p>
                             </div>
-                            <p className="text-sm font-semibold text-brand-slate">{currencyFormatter.format(total)}</p>
+                            <p className="text-sm font-semibold text-brand-slate">{formatCurrency(total)}</p>
                         </div>
                     </li>
                 );
@@ -195,7 +191,7 @@ function InvoiceList({ invoices }) {
                                 <p className="font-medium text-brand-text">{vehicleTitle(invoice.vehicle)}</p>
                                 <p className="mt-1 text-xs text-brand-slate">{customerName} • {formatDate(invoice.date)}</p>
                             </div>
-                            <p className="text-sm font-semibold text-brand-slate">{currencyFormatter.format(total)}</p>
+                            <p className="text-sm font-semibold text-brand-slate">{formatCurrency(total)}</p>
                         </div>
                     </li>
                 );

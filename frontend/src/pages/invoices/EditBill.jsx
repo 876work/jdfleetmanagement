@@ -4,9 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { getApiErrorMessage } from "../../utils/errorMessages";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../../utils/currency";
 import { useAuth } from "../../context/useAuth";
 import {
     isAdmin as checkIsAdmin,
+    isStaff as checkIsStaff,
     staffCanEditInvoice,
 } from "../../utils/permissions";
 
@@ -23,10 +25,11 @@ const EditBill = () => {
 
     const { auth } = useAuth();
     const admin = checkIsAdmin(auth);
-    const staffMode = !admin;
-    const canEditInvoice = admin || staffCanEditInvoice(bill);
+    const staff = checkIsStaff(auth);
+    const staffLocked = staff && !staffCanEditInvoice(bill);
+    const canEditInvoice = admin || (staff && staffCanEditInvoice(bill));
 
-    const { register, control, handleSubmit, reset } = useForm({
+    const { register, control, handleSubmit, reset, watch } = useForm({
         defaultValues: {
             customer: "",
             vehicle: "",
@@ -42,6 +45,12 @@ const EditBill = () => {
         control,
         name: "services",
     });
+
+    const services = watch("services") || [];
+
+    const displayedTotal = services.reduce((sum, item) => {
+        return sum + Number(item.price || 0);
+    }, 0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -102,8 +111,7 @@ const EditBill = () => {
 
         const cleanedServices = data.services.map((service) => ({
             description: service.description,
-            price:
-                parseFloat(service.price?.toString().replace(",", ".")) || 0,
+            price: parseFloat(service.price?.toString().replace(",", ".")) || 0,
         }));
 
         const totalPrice = cleanedServices.reduce(
@@ -155,11 +163,17 @@ const EditBill = () => {
                 ✏️ Edit Invoice
             </h1>
 
-            {staffMode && (
+            {staff && (
                 <div className="mb-4 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
-                    Staff users can update invoice notes and allowed invoice
-                    details, but cannot mark invoices as paid or cancelled and
+                    Staff users cannot mark invoices as paid or cancelled and
                     cannot change invoice amounts.
+                </div>
+            )}
+
+            {staffLocked && (
+                <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    Staff users cannot edit paid, cancelled, archived, or
+                    completed invoices.
                 </div>
             )}
 
@@ -227,7 +241,7 @@ const EditBill = () => {
 
                     <select
                         {...register("paymentStatus")}
-                        className="w-full rounded border p-2"
+                        className="w-full rounded border p-2 disabled:bg-gray-100"
                     >
                         <option value="draft">Draft</option>
                         <option value="unpaid">Unpaid</option>
@@ -237,7 +251,7 @@ const EditBill = () => {
                         {admin && <option value="cancelled">Cancelled</option>}
                     </select>
 
-                    {staffMode && (
+                    {staff && (
                         <p className="mt-1 text-xs text-brand-slate">
                             Staff cannot mark invoices as paid or cancelled.
                         </p>
@@ -245,7 +259,9 @@ const EditBill = () => {
                 </div>
 
                 <div>
-                    <label className="mb-2 block font-medium">Services</label>
+                    <label className="mb-2 block font-medium">
+                        Services / Prices XCD
+                    </label>
 
                     <div className="space-y-2">
                         {fields.map((field, index) => (
@@ -262,11 +278,11 @@ const EditBill = () => {
                                 <input
                                     type="number"
                                     step="0.01"
-                                    placeholder="Price"
+                                    placeholder="Unit Price XCD"
                                     {...register(`services.${index}.price`)}
-                                    disabled={staffMode}
+                                    disabled={staff}
                                     title={
-                                        staffMode
+                                        staff
                                             ? "Staff users cannot change invoice amounts after creation."
                                             : undefined
                                     }
@@ -312,7 +328,7 @@ const EditBill = () => {
                             >
                                 <input
                                     type="checkbox"
-                                    disabled={staffMode}
+                                    disabled={staff}
                                     checked={form.partsUsed.includes(part._id)}
                                     onChange={() => {
                                         const exists =
@@ -337,7 +353,7 @@ const EditBill = () => {
                         ))}
                     </div>
 
-                    {staffMode && (
+                    {staff && (
                         <p className="mt-1 text-xs text-brand-slate">
                             Staff cannot change parts used or inventory related
                             values.
@@ -356,6 +372,10 @@ const EditBill = () => {
                     />
                 </div>
 
+                <div className="text-lg font-bold">
+                    Invoice Total XCD: {formatCurrency(displayedTotal)}
+                </div>
+
                 <div className="mt-6 flex justify-between">
                     <button
                         type="button"
@@ -367,7 +387,8 @@ const EditBill = () => {
 
                     <button
                         type="submit"
-                        className="rounded bg-brand-navy px-6 py-2 text-white hover:bg-brand-deep"
+                        disabled={staffLocked}
+                        className="rounded bg-brand-navy px-6 py-2 text-white hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                         💾 Save Changes
                     </button>

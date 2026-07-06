@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../../utils/axiosInstance";
+import { formatCurrency } from "../../utils/currency";
 import toast from "react-hot-toast";
 
 export default function InvoicesPage() {
@@ -57,7 +58,7 @@ export default function InvoicesPage() {
                             <th className="p-3">Plate</th>
                             <th className="p-3">Customer</th>
                             <th className="p-3">Date</th>
-                            <th className="p-3">Amount (€)</th>
+                            <th className="p-3">Amount (XCD)</th>
                             <th className="p-3">Status</th>
                             <th className="p-3">Description</th>
                             <th className="p-3">Notes</th>
@@ -74,13 +75,13 @@ export default function InvoicesPage() {
                                         : "—"}
                                 </td>
                                 <td className="p-3">{new Date(inv.date).toLocaleDateString()}</td>
-                                <td className="p-3">{Number(inv.totalPrice || 0).toLocaleString()} €</td>
+                                <td className="p-3">{formatCurrency(inv.totalPrice)}</td>
                                 <td className="p-3 capitalize">{inv.paymentStatus || "unpaid"}</td>
                                 <td className="p-3">
                                     <ul className="list-disc pl-5 mt-2">
                                         {inv.services?.map((srv, idx) => (
                                             <li key={idx}>
-                                                {srv.description} — {Number(srv.price || 0).toLocaleString()} €
+                                                {srv.description} — {formatCurrency(srv.price)}
                                             </li>
                                         ))}
                                     </ul>

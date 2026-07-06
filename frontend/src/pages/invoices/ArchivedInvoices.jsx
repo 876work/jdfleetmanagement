@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../../utils/axiosInstance";
+import { formatCurrency } from "../../utils/currency";
 import { Link } from "react-router-dom";
 
 export default function ArchivedInvoices() {
@@ -30,7 +31,7 @@ export default function ArchivedInvoices() {
                             <th className="text-left px-4 py-2">Customer</th>
                             <th className="text-left px-4 py-2">Vehicle</th>
                             <th className="text-left px-4 py-2">Date</th>
-                            <th className="text-left px-4 py-2">Total (€)</th>
+                            <th className="text-left px-4 py-2">Total (XCD)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,7 +40,7 @@ export default function ArchivedInvoices() {
                                 <td className="p-3">{inv.customer?.firstName} {inv.customer?.lastName}</td>
                                 <td className="p-3">{inv.vehicle?.brand} {inv.vehicle?.model}</td>
                                 <td className="p-3">{new Date(inv.date).toLocaleDateString()}</td>
-                                <td className="p-3">€{inv.totalPrice}</td>
+                                <td className="p-3">{formatCurrency(inv.totalPrice)}</td>
                             </tr>
                         ))}
                     </tbody>

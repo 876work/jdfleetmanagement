@@ -10,6 +10,7 @@ import EditBill from "./pages/invoices/EditBill";
 import InvoicesPage from "./pages/invoices/InvoicesPage";
 import EditMaintenance from "./pages/EditMaintenance";
 import ArchivedInvoices from "./pages/invoices/ArchivedInvoices";
+import InvoiceDetail from './pages/invoices/InvoiceDetail';
 import Dashboard from "./pages/Dashboard";
 import AddPartOrder from "./pages/AddPartOrder";
 import Register from "./pages/Register";
@@ -102,6 +103,14 @@ function App() {
         }
       />
 
+      <Route
+        path="/invoices/:id"
+        element={
+          <ProtectedRoute>
+            <InvoiceDetail />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/invoices/archived"
         element={

@@ -43,7 +43,7 @@ export default function VehicleForm() {
         <input type="text" name="model" placeholder="مدل" value={formData.model} onChange={handleChange} className="border p-2 w-full" required />
         <input type="text" name="licensePlate" placeholder="پلاک" value={formData.licensePlate} onChange={handleChange} className="border p-2 w-full" required />
         <input type="number" name="year" placeholder="سال ساخت" value={formData.year} onChange={handleChange} className="border p-2 w-full" required />
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2">ثبت</button>
+        <button type="submit" className="bg-brand-navy text-white px-4 py-2">ثبت</button>
       </form>
 
       <h3 className="text-lg font-semibold mt-6 mb-2">لیست خودروها</h3>

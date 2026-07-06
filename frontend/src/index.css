@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color: #111827;
+  background: #EAF0F8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #EAF0F8;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
 
 @media print {
   .print-only { display: block !important; }

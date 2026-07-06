@@ -43,12 +43,18 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-brand-soft px-4">
       <div className="bg-white shadow-md rounded p-6 w-full max-w-sm text-center">
         <div className="mb-6">
-          <img src="/logo.png" alt="App Logo" className="mx-auto w-16 h-16" />
-          <h2 className="text-2xl font-bold mt-2">Create Account</h2>
-          <p className="text-sm text-gray-500 mt-1">Sign up to access JD Fleet Management.</p>
+          <img
+            src="/JD_Carriers_logo.svg"
+            alt="JD Carriers logo"
+            className="mx-auto h-20 w-auto object-contain"
+            onError={(event) => { event.currentTarget.style.display = "none"; }}
+          />
+          <p className="mt-2 text-sm font-semibold uppercase tracking-[0.18em] text-brand-gold">JD Carriers</p>
+          <h2 className="text-2xl font-bold mt-1 text-brand-deep">JD Fleet Management</h2>
+          <p className="text-sm text-brand-slate mt-1">Create your account to access secure fleet operations.</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4 text-left">
@@ -58,7 +64,7 @@ function Register() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
-            className="w-full border border-gray-300 px-3 py-2 rounded"
+            className="w-full border border-brand-border px-3 py-2 rounded"
           />
           <input
             type="password"
@@ -67,7 +73,7 @@ function Register() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full border border-gray-300 px-3 py-2 rounded"
+            className="w-full border border-brand-border px-3 py-2 rounded"
           />
           <input
             type="password"
@@ -76,22 +82,22 @@ function Register() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full border border-gray-300 px-3 py-2 rounded"
+            className="w-full border border-brand-border px-3 py-2 rounded"
           />
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+            className="w-full bg-brand-navy text-white py-2 rounded hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-brand-neutral"
           >
             {isSubmitting ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
-        {message && <p className="mt-4 text-sm text-red-500">{message}</p>}
+        {message && <p className="mt-4 text-sm text-brand-error">{message}</p>}
 
         <p className="mt-6 text-sm">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-600 hover:underline">
+          <Link to="/" className="text-brand-navy hover:underline">
             Log in here
           </Link>
         </p>

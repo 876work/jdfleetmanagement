@@ -83,7 +83,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
             <div className="bg-white p-6 rounded shadow-lg w-[500px] space-y-4 max-h-[90vh] overflow-y-auto">
                 <h2 className="text-xl text-center font-bold">➕ Add Maintenance</h2>
 
-                {errorMessage && <div className="text-red-600">{errorMessage}</div>}
+                {errorMessage && <div className="text-brand-error">{errorMessage}</div>}
 
                 <select name="vehicleId" value={form.vehicleId} onChange={handleChange} className="w-full border p-2 rounded">
                     <option value="">-- Select Vehicle --</option>
@@ -120,10 +120,10 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
                                 placeholder="Cost"
                                 className="w-24 border p-2 rounded"
                             />
-                            <button onClick={() => removeService(idx)} className="text-red-600 hover:text-red-800">🗑️</button>
+                            <button onClick={() => removeService(idx)} className="text-brand-error hover:text-red-800">🗑️</button>
                         </div>
                     ))}
-                    <button onClick={addService} className="text-blue-600 hover:underline mt-1">+ Add Service</button>
+                    <button onClick={addService} className="text-brand-navy hover:underline mt-1">+ Add Service</button>
                 </div>
 
                 {/* Parts Section */}
@@ -153,7 +153,7 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
                 {/* Actions */}
                 <div className="flex justify-end gap-2 pt-2">
                     <button onClick={handleCancel} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                    <button onClick={handleSubmit} className="px-4 py-2 bg-brand-navy text-white rounded hover:bg-brand-deep">Save</button>
                 </div>
             </div>
         </div>

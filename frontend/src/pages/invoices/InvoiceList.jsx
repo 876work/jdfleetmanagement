@@ -61,7 +61,7 @@ const InvoiceList = () => {
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-center mb-10"> 📄 Invoice List</h1>
+            <h1 className="text-3xl font-bold text-center mb-10"> 📄 Fleet Reports</h1>
 
             <div className="flex gap-4 mb-6">
                 <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="border p-2 rounded w-1/2">
@@ -80,8 +80,8 @@ const InvoiceList = () => {
             </div>
 
             <div className="flex justify-between items-center mb-6">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onClick={() => { setSelectedCustomer(''); setSelectedVehicle(''); }}>Reset Filters</button>
-                <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={() => navigate('/add-bill')}> ➕ Add Invoice</button>
+                <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-navy" onClick={() => { setSelectedCustomer(''); setSelectedVehicle(''); }}>Reset Filters</button>
+                <button className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success" onClick={() => navigate('/add-bill')}> ➕ Add Invoice</button>
             </div>
 
             {loading ? (
@@ -99,7 +99,7 @@ const InvoiceList = () => {
                                 <div>📅 Date: {new Date(bill.date).toLocaleDateString()}</div>
 
                                 <details className="mt-2">
-                                    <summary className="cursor-pointer text-blue-600">View Services</summary>
+                                    <summary className="cursor-pointer text-brand-navy">View Services</summary>
                                     <ul className="list-disc pl-5 mt-2">
                                         {bill.services.map((srv, idx) => (
                                             <li key={idx}>{srv.description} — {srv.price.toLocaleString()} €</li>
@@ -107,14 +107,14 @@ const InvoiceList = () => {
                                     </ul>
                                 </details>
                                 <details className="mt-2">
-                                    <summary className="cursor-pointer text-blue-600">Parts Used</summary>
+                                    <summary className="cursor-pointer text-brand-navy">Parts Used</summary>
                                     <ul className="list-disc pl-5 mt-2">
                                         {bill.maintenanceId?.partsUsed?.length > 0 ? (
                                             bill.maintenanceId.partsUsed.map((part, idx) => (
                                                 <li key={idx}>{part.name}</li>
                                             ))
                                         ) : (
-                                            <li className="text-gray-500">No parts used</li>
+                                            <li className="text-brand-slate">No parts used</li>
                                         )}
                                     </ul>
                                 </details>
@@ -122,8 +122,8 @@ const InvoiceList = () => {
 
 
                             <div className="flex flex-col items-end gap-2">
-                                <button onClick={() => navigate(`/edit-bill/${bill._id}`)} className="bg-yellow-400 text-black px-5 py-2 rounded hover:bg-yellow-500"> ✏️ Edit</button>
-                                <button onClick={() => handleArchive(bill._id)} className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"> 📦 Archive</button>
+                                <button onClick={() => navigate(`/edit-bill/${bill._id}`)} className="bg-brand-gold text-white px-5 py-2 rounded hover:bg-brand-highlight"> ✏️ Edit</button>
+                                <button onClick={() => handleArchive(bill._id)} className="bg-brand-error text-white px-3 py-2 rounded hover:bg-brand-error"> 📦 Archive</button>
                                 <button onClick={() => handlePrint(bill)} className="bg-indigo-500 text-white px-5 py-2 rounded hover:bg-indigo-600"> 🖶️ Print</button>
                             </div>
                         </div>
@@ -133,7 +133,7 @@ const InvoiceList = () => {
 
             {/* Printable View */}
             {printBill && (
-                <div className="fixed inset-0 bg-white text-black p-10 z-50" ref={printRef}>
+                <div className="fixed inset-0 bg-white text-white p-10 z-50" ref={printRef}>
                     <div className="max-w-xl mx-auto border rounded shadow p-6">
                         <h2 className="text-xl font-bold text-center mb-4">🧾 Invoice Details</h2>
                         <p><strong>🧍 Customer:</strong> {printBill.customer?.firstName} {printBill.customer?.lastName}</p>
@@ -169,7 +169,7 @@ const InvoiceList = () => {
                             <button
                                 type="button"
                                 onClick={() => setPrintBill(null)}
-                                className="bg-gray-300 text-gray-800 px-5 py-2 rounded hover:bg-gray-400"
+                                className="bg-gray-300 text-brand-text px-5 py-2 rounded hover:bg-gray-400"
                             >
                                 ❌ Cancel
                             </button>
@@ -179,7 +179,7 @@ const InvoiceList = () => {
                                     window.print();
                                     setTimeout(() => setPrintBill(null), 500);
                                 }}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+                                className="bg-brand-navy hover:bg-brand-deep text-white px-6 py-2 rounded"
                             >
                                 🖨️ Print Now
                             </button>

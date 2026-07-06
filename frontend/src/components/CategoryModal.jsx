@@ -22,8 +22,8 @@ export default function CategoryModal({ visible, onClose, onSave }) {
                     className="w-full border px-3 py-2 rounded mb-4"
                 />
                 <div className="flex justify-end space-x-2">
-                    <button onClick={onClose} className="bg-gray-300 text-black px-4 py-2 rounded">Cancel</button>
-                    <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
+                    <button onClick={onClose} className="bg-gray-300 text-white px-4 py-2 rounded">Cancel</button>
+                    <button onClick={handleSave} className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-deep">Save</button>
                 </div>
             </div>
         </div>

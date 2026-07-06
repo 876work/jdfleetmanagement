@@ -56,7 +56,7 @@ export default function EditVehicleModal({ visible, onClose, onSave, vehicle, ca
 
                 <div className="flex justify-end gap-2">
                     <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                    <button onClick={handleSubmit} className="px-4 py-2 bg-brand-navy text-white rounded hover:bg-brand-deep">Save</button>
                 </div>
             </div>
         </div>

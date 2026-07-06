@@ -6,6 +6,8 @@ import AddMaintenanceModal from "../components/AddMaintenanceModal";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import InvoiceModal from "../components/InvoiceModal";
+import { useAuth } from "../context/useAuth";
+import { isAdminUser, canStaffEditMaintenance } from "../utils/permissions";
 
 export default function MaintenanceList() {
     const [records, setRecords] = useState([]);
@@ -15,6 +17,8 @@ export default function MaintenanceList() {
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState(null);
     const navigate = useNavigate();
+    const { auth } = useAuth();
+    const isAdmin = isAdminUser(auth);
     const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -340,14 +344,16 @@ export default function MaintenanceList() {
                                                 </ul>
 
                                                 <div className="mt-4 flex flex-wrap gap-3">
-                                                    <button
-                                                        onClick={() =>
-                                                            navigate(`/edit-maintenance/${record._id}`)
-                                                        }
-                                                        className="btn-warning"
-                                                    >
-                                                        ✏️ Edit
-                                                    </button>
+                                                    {(isAdmin || canStaffEditMaintenance(record)) && (
+                                                        <button
+                                                            onClick={() =>
+                                                                navigate(`/edit-maintenance/${record._id}`)
+                                                            }
+                                                            className="btn-warning"
+                                                        >
+                                                            ✏️ Edit
+                                                        </button>
+                                                    )}
 
                                                     <button
                                                         onClick={async () => {
@@ -368,12 +374,14 @@ export default function MaintenanceList() {
                                                         📄 View Invoice
                                                     </button>
 
-                                                    <button
-                                                        onClick={() => openDeleteConfirm(record)}
-                                                        className="rounded bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700"
-                                                    >
-                                                        🗑️ Delete
-                                                    </button>
+                                                    {isAdmin && (
+                                                        <button
+                                                            onClick={() => openDeleteConfirm(record)}
+                                                            className="rounded bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700"
+                                                        >
+                                                            🗑️ Delete
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </Motion.div>
                                         )}

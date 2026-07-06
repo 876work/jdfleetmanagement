@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { getApiErrorMessage } from '../../utils/errorMessages';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/useAuth';
+import { isStaffUser, canStaffEditInvoice } from '../../utils/permissions';
 
 
 const EditBill = () => {
@@ -14,6 +16,9 @@ const EditBill = () => {
     const [vehicles, setVehicles] = useState([]);
     const [availableParts, setAvailableParts] = useState([]);
     const [form, setForm] = useState({ partsUsed: [] });
+    const [bill, setBill] = useState(null);
+    const { auth } = useAuth();
+    const isStaff = isStaffUser(auth);
 
     const { register, control, handleSubmit, reset } = useForm({
         defaultValues: {
@@ -40,6 +45,8 @@ const EditBill = () => {
                     axiosInstance.get('/api/vehicles'),
                     axiosInstance.get('/api/parts'),
                 ]);
+
+                setBill(billRes.data);
 
                 reset({
                     customer: billRes.data.customer._id,
@@ -96,11 +103,19 @@ const EditBill = () => {
 
     if (loading) return <p className="p-6">Loading...</p>;
 
+    const staffLocked = isStaff && !canStaffEditInvoice(bill);
+
     return (
         <div className="max-w-2xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-6 flex items-center justify-center gap-2 text-center">
                 ✏️ Edit Invoice
             </h1>
+
+            {staffLocked && (
+                <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    Staff users cannot edit paid, cancelled, or archived invoices.
+                </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white border rounded p-6 shadow-sm">
                 {/* Customer */}
@@ -138,12 +153,13 @@ const EditBill = () => {
                 {/* Payment Status */}
                 <div>
                     <label className="block font-medium mb-1">Payment Status</label>
-                    <select {...register('paymentStatus')} className="border p-2 rounded w-full">
+                    <select {...register('paymentStatus')} disabled={staffLocked} className="border p-2 rounded w-full disabled:bg-gray-100">
                         <option value="unpaid">Unpaid</option>
-                        <option value="paid">Paid</option>
                         <option value="overdue">Overdue</option>
-                        <option value="cancelled">Cancelled</option>
+                        {!isStaff && <option value="paid">Paid</option>}
+                        {!isStaff && <option value="cancelled">Cancelled</option>}
                     </select>
+                    {isStaff && <p className="mt-1 text-xs text-brand-slate">Staff cannot mark invoices as paid or cancelled.</p>}
                 </div>
 
                 {/* Services */}
@@ -163,20 +179,25 @@ const EditBill = () => {
                                     step="0.01"
                                     placeholder="Price"
                                     {...register(`services.${index}.price`)}
-                                    className="border p-2 rounded w-32"
+                                    disabled={isStaff || staffLocked}
+                                    className="border p-2 rounded w-32 disabled:bg-gray-100"
                                 />
-                                <button type="button" onClick={() => remove(index)} className="text-brand-error">
-                                    🗑️
-                                </button>
+                                {!isStaff && (
+                                    <button type="button" onClick={() => remove(index)} className="text-brand-error">
+                                        🗑️
+                                    </button>
+                                )}
                             </div>
                         ))}
-                        <button
-                            type="button"
-                            onClick={() => append({ description: '', price: '' })}
-                            className="text-sm text-brand-navy"
-                        >
-                            ➕ Add Service
-                        </button>
+                        {!isStaff && (
+                            <button
+                                type="button"
+                                onClick={() => append({ description: '', price: '' })}
+                                className="text-sm text-brand-navy"
+                            >
+                                ➕ Add Service
+                            </button>
+                        )}
                     </div>
                 </div>
                 {/* Parts Section */}
@@ -187,6 +208,7 @@ const EditBill = () => {
                             <label key={part._id} className="flex items-center gap-2 text-sm">
                                 <input
                                     type="checkbox"
+                                    disabled={staffLocked}
                                     checked={form.partsUsed.includes(part._id)}
                                     onChange={() => {
                                         const exists = form.partsUsed.includes(part._id);
@@ -221,7 +243,8 @@ const EditBill = () => {
 
                     <button
                         type="submit"
-                        className="bg-brand-navy text-white px-6 py-2 rounded hover:bg-brand-deep"
+                        disabled={staffLocked}
+                        className="bg-brand-navy text-white px-6 py-2 rounded hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                         💾 Save Changes
                     </button>

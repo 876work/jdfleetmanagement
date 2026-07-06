@@ -6,7 +6,8 @@ import {
     getPartById,
     updatePart,
     addPartOrder, // <-- import new handler
-    getLowStockParts
+    getLowStockParts,
+    deletePart
 } from "../controllers/partController.js";
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.get("/", getAllParts);
 router.get("/low-stock", getLowStockParts);
 router.get("/:id", getPartById);
 router.put("/:id", updatePart);
+router.delete("/:id", deletePart);
 
 
 //record purchase order & increase stock

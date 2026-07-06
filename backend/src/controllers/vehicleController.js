@@ -1,5 +1,6 @@
 import Vehicle, { VEHICLE_STATUSES } from '../models/Vehicle.js';
 import { isNonEmptyString, isValidObjectId, sendValidationError, publicErrorMessage } from '../utils/validation.js';
+import { denyStaff, isStaff } from '../utils/permissions.js';
 
 const vehicleFields = [
   'name',
@@ -92,6 +93,16 @@ export const getVehicleById = async (req, res) => {
 // PUT /api/vehicles/:id → Update a vehicle
 export const updateVehicle = async (req, res) => {
   try {
+    if (isStaff(req)) {
+      const current = await Vehicle.findById(req.params.id).lean();
+      if (!current) return res.status(404).json({ message: 'Vehicle not found' });
+      const payload = buildVehiclePayload(req.body);
+      const changedFields = Object.keys(payload).filter((field) => String(payload[field] ?? '') !== String(current[field] ?? ''));
+      const disallowed = changedFields.filter((field) => field !== 'status');
+      if (disallowed.length) {
+        return denyStaff(res, 'Staff users can only update a vehicle operational status and cannot change ownership or other vehicle details.');
+      }
+    }
     const fields = validateVehiclePayload(req.body);
     if (Object.keys(fields).length) return sendValidationError(res, 'Please fix the highlighted vehicle fields.', fields);
     const updated = await Vehicle.findByIdAndUpdate(
@@ -109,6 +120,7 @@ export const updateVehicle = async (req, res) => {
 // DELETE /api/vehicles/:id → Delete a vehicle
 export const deleteVehicle = async (req, res) => {
   try {
+    if (isStaff(req)) return denyStaff(res, 'Staff users cannot delete vehicles.');
     const deleted = await Vehicle.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'Vehicle not found' });
     res.json({ message: 'Vehicle deleted' });

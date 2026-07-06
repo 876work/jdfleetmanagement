@@ -1,5 +1,6 @@
 import Customer from '../models/Customer.js';
 import { isNonEmptyString, isValidEmail, sendValidationError, publicErrorMessage } from '../utils/validation.js';
+import { denyStaff, isStaff } from '../utils/permissions.js';
 
 const validateCustomer = (body) => {
   const fields = {};
@@ -57,6 +58,7 @@ export const updateCustomer = async (req, res) => {
 
 export const deleteCustomer = async (req, res) => {
   try {
+    if (isStaff(req)) return denyStaff(res, 'Staff users cannot delete customers or owners.');
     const deleted = await Customer.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'Customer not found.' });
     res.status(200).json({ message: 'Customer deleted.' });

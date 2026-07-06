@@ -1,5 +1,6 @@
 // src/components/InvoiceCard.jsx
 import React from "react";
+import { formatXcd, formatInvoiceStatus, invoiceStatusClass } from "./InvoiceDocument";
 
 // Note: Buttons are given the "no-print" class so they are only visible on the screen, not in print.
 export default function InvoiceCard({
@@ -24,14 +25,14 @@ export default function InvoiceCard({
                         {bill.vehicle?.plateNumber ? `(${bill.vehicle.plateNumber})` : ""}
                     </div>
                     <div>📅 Invoice Date: {new Date(bill.date).toLocaleDateString()}</div>
-                    <div>💳 Status: {(bill.paymentStatus || "unpaid").charAt(0).toUpperCase() + (bill.paymentStatus || "unpaid").slice(1)}</div>
+                    <div>💳 Status: <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold ${invoiceStatusClass(bill.paymentStatus)}`}>{formatInvoiceStatus(bill.paymentStatus)}</span></div>
                     {bill.notes && <div className="mt-2 text-sm text-brand-slate">📝 Notes: {bill.notes}</div>}
                     <div className="mt-3">
                         <div className="font-semibold mb-1">Services:</div>
                         <ul className="list-disc pl-5 space-y-1 text-sm">
                             {bill.services?.map((srv, idx) => (
                                 <li key={idx}>
-                                    {srv.description} — €{Number(srv.price || 0).toLocaleString()}
+                                    {srv.description} — {formatXcd(srv.price)}
                                 </li>
                             ))}
                         </ul>
@@ -50,7 +51,7 @@ export default function InvoiceCard({
                     </div>
 
                     <div className="mt-3 font-bold text-right text-lg">
-                        💰 Amount: €{Number(bill.totalPrice || 0).toLocaleString()}
+                        💰 Amount: {formatXcd(bill.totalPrice)}
                     </div>
                 </div>
 
@@ -67,7 +68,7 @@ export default function InvoiceCard({
                         </button>
                     )}
                     {onPrint && (
-                        <button onClick={onPrint} className="bg-indigo-500 text-white px-5 py-2 rounded hover:bg-indigo-600">
+                        <button onClick={onPrint} className="bg-brand-navy text-white px-5 py-2 rounded hover:bg-brand-deep">
                             🖶️ Print
                         </button>
                     )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
+import { formatXcd, formatInvoiceStatus, invoiceStatusClass } from "../../components/InvoiceDocument";
 
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState([]);
@@ -57,7 +58,7 @@ export default function InvoicesPage() {
                             <th className="p-3">Plate</th>
                             <th className="p-3">Customer</th>
                             <th className="p-3">Date</th>
-                            <th className="p-3">Amount (€)</th>
+                            <th className="p-3">Amount (XCD)</th>
                             <th className="p-3">Status</th>
                             <th className="p-3">Description</th>
                             <th className="p-3">Notes</th>
@@ -74,13 +75,13 @@ export default function InvoicesPage() {
                                         : "—"}
                                 </td>
                                 <td className="p-3">{new Date(inv.date).toLocaleDateString()}</td>
-                                <td className="p-3">{Number(inv.totalPrice || 0).toLocaleString()} €</td>
-                                <td className="p-3 capitalize">{inv.paymentStatus || "unpaid"}</td>
+                                <td className="p-3">{formatXcd(inv.totalPrice)}</td>
+                                <td className="p-3"><span className={`inline-flex rounded-full border px-2 py-1 text-xs font-semibold ${invoiceStatusClass(inv.paymentStatus)}`}>{formatInvoiceStatus(inv.paymentStatus)}</span></td>
                                 <td className="p-3">
                                     <ul className="list-disc pl-5 mt-2">
                                         {inv.services?.map((srv, idx) => (
                                             <li key={idx}>
-                                                {srv.description} — {Number(srv.price || 0).toLocaleString()} €
+                                                {srv.description} — {formatXcd(srv.price)}
                                             </li>
                                         ))}
                                     </ul>

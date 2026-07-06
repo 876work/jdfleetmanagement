@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children }) {
       logout(); // Token expired, delete it
       return <Navigate to="/" replace />;
     }
-  } catch (err) {
+  } catch {
     logout();
     return <Navigate to="/" replace />;
   }

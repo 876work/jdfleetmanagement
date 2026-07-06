@@ -57,7 +57,7 @@ export default function AddVehicle() {
       setFormData(prev => ({ ...prev, categoryId: createdCategory._id }));
       setShowCategoryModal(false);
     } catch (err) {
-      alert("Failed to add category: " + (err.response?.data?.message || err.message));
+      setMessage("Error: Failed to add category: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -75,52 +75,47 @@ export default function AddVehicle() {
           ? "❌ This email is already registered!"
           : "❌ Failed to add owner: " + (err.response?.data?.message || err.message);
 
-      alert(msg);
+      setMessage(msg.replace("❌ ", "Error: "));
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-soft">
-      <div className="max-w-xl w-full p-6 bg-white rounded shadow">
-        <h1 className="text-2xl font-bold text-center mb-4">🚗 Add Fleet Vehicle</h1>
-        {message && <p className="mb-4 text-brand-navy">{message}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
-          <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="Vehicle Name or Label (e.g. Truck 12)" className="w-full border px-3 py-2 rounded" />
-          <input name="plateNumber" value={formData.plateNumber} onChange={handleChange} type="text" placeholder="License Plate Number" className="w-full border px-3 py-2 rounded" required />
-          <input name="brand" value={formData.brand} onChange={handleChange} type="text" placeholder="Make" className="w-full border px-3 py-2 rounded" required />
-          <input name="model" value={formData.model} onChange={handleChange} type="text" placeholder="Model" className="w-full border px-3 py-2 rounded" required />
-          <input name="year" value={formData.year} onChange={handleChange} type="number" placeholder="Year (e.g. 2020)" className="w-full border px-3 py-2 rounded" required />
-          <select name="status" value={formData.status} onChange={handleChange} className="w-full border px-3 py-2 rounded" required>
+    <div className="app-shell"><main className="app-container max-w-4xl"><section className="page-header"><p className="eyebrow">Fleet intake</p><h1 className="page-title">Add Fleet Vehicle</h1><p className="page-description">Capture vehicle details, ownership, category, and notes with a mobile-friendly form.</p></section><div className="card-pad">{message && <div className={message.startsWith("Error") ? "alert-error mb-4" : "alert-success mb-4"}>{message}</div>}<form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+          <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="Vehicle Name or Label (e.g. Truck 12)" className="form-control" />
+          <input name="plateNumber" value={formData.plateNumber} onChange={handleChange} type="text" placeholder="License Plate Number" className="form-control" required />
+          <input name="brand" value={formData.brand} onChange={handleChange} type="text" placeholder="Make" className="form-control" required />
+          <input name="model" value={formData.model} onChange={handleChange} type="text" placeholder="Model" className="form-control" required />
+          <input name="year" value={formData.year} onChange={handleChange} type="number" placeholder="Year (e.g. 2020)" className="form-control" required />
+          <select name="status" value={formData.status} onChange={handleChange} className="form-control" required>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
             <option value="maintenance">Maintenance</option>
             <option value="retired">Retired</option>
           </select>
           <div>
-            <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full border px-3 py-2 rounded" required>
+            <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="form-control" required>
               <option value="">-- Select Category --</option>
               {categories.map(cat => (
                 <option key={cat._id} value={cat._id}>{cat.name}</option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowCategoryModal(true)} className="text-brand-navy underline text-sm mt-1">+ Add New Category</button>
+            <button type="button" onClick={() => setShowCategoryModal(true)} className="btn-ghost mt-2 px-0">+ Add New Category</button>
           </div>
           <div>
-            <select name="ownerId" value={formData.ownerId} onChange={handleChange} className="w-full border px-3 py-2 rounded" required>
+            <select name="ownerId" value={formData.ownerId} onChange={handleChange} className="form-control" required>
               <option value="">-- Select Owner --</option>
               {owners.map(owner => (
                 <option key={owner._id} value={owner._id}>{owner.firstName} {owner.lastName}</option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowOwnerModal(true)} className="text-brand-navy underline text-sm mt-1">+ Add New Owner</button>
+            <button type="button" onClick={() => setShowOwnerModal(true)} className="btn-ghost mt-2 px-0">+ Add New Owner</button>
           </div>
-          <textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Notes (maintenance reminders, VIN, equipment, etc.)" className="w-full border px-3 py-2 rounded" rows="3" />
-          <button type="submit" className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success">Submit</button>
+          <div className="sm:col-span-2"><textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Notes (maintenance reminders, VIN, equipment, etc.)" className="form-control" rows="3" /></div>
+          <button type="submit" className="btn-success sm:col-span-2">Submit</button>
         </form>
         <CategoryModal visible={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSave={addNewCategory} />
         <OwnerModal visible={showOwnerModal} onClose={() => setShowOwnerModal(false)} onSave={addNewOwner} existingOwners={owners} />
-      </div>
-    </div>
+      </div></main></div>
   );
 }
 console.log("🚗 This is AddVehicle Page!");

@@ -7,6 +7,7 @@ import {
     updateCustomer,
     deleteCustomer,
 } from '../controllers/customerController.js';
+import { denyStaff } from '../middlewares/permissions.js';
 
 const router = express.Router();
 
@@ -15,6 +16,6 @@ router.post('/', createCustomer);
 router.get('/', getAllCustomers);
 router.get('/:id', getCustomerById);
 router.put('/:id', updateCustomer);
-router.delete('/:id', deleteCustomer);
+router.delete('/:id', denyStaff('Staff users cannot delete customers or owners. Please contact an admin.'), deleteCustomer);
 
 export default router;

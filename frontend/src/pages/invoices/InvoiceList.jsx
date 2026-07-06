@@ -3,7 +3,10 @@ import axiosInstance from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { isAdminUser, canStaffEditInvoice } from "../../utils/permissions";
+import {
+    isAdmin as checkIsAdmin,
+    staffCanEditInvoice,
+} from "../../utils/permissions";
 
 import { formatCurrency } from "../../utils/currency";
 
@@ -12,6 +15,7 @@ const formatStatus = (status = "unpaid") =>
 
 const statusClass = (status = "unpaid") =>
     ({
+        draft: "bg-blue-100 text-blue-800",
         paid: "bg-green-100 text-green-800",
         overdue: "bg-red-100 text-red-800",
         cancelled: "bg-gray-200 text-gray-700",
@@ -32,7 +36,7 @@ const InvoiceList = () => {
     const printRef = useRef();
     const navigate = useNavigate();
     const { auth } = useAuth();
-    const isAdmin = isAdminUser(auth);
+    const admin = checkIsAdmin(auth);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -135,6 +139,7 @@ const InvoiceList = () => {
         try {
             await axiosInstance.patch(`/api/bills/${id}/archive`);
             toast.success("Invoice archived successfully");
+
             setBills((prev) => prev.filter((bill) => bill._id !== id));
         } catch (err) {
             toast.error(`Failed to archive invoice: ${err.message}`);
@@ -242,7 +247,9 @@ const InvoiceList = () => {
                 </section>
 
                 {loading ? (
-                    <div className="card-pad text-brand-slate">Loading invoices...</div>
+                    <div className="card-pad text-brand-slate">
+                        Loading invoices...
+                    </div>
                 ) : filteredBills.length === 0 ? (
                     <div className="empty-state">
                         <div className="text-3xl">🧾</div>
@@ -264,119 +271,129 @@ const InvoiceList = () => {
                     </div>
                 ) : (
                     <div className="grid gap-4">
-                        {filteredBills.map((bill) => (
-                            <div
-                                key={bill._id}
-                                className="card-pad flex flex-col gap-4 transition hover:shadow-md lg:flex-row lg:items-start lg:justify-between"
-                            >
-                                <div>
-                                    <div className="font-semibold">
-                                        🦾 Customer:{" "}
-                                        {bill.customer
-                                            ? `${bill.customer.firstName} ${bill.customer.lastName}`
-                                            : "Unknown"}
-                                    </div>
+                        {filteredBills.map((bill) => {
+                            const canEdit = admin || staffCanEditInvoice(bill);
 
+                            return (
+                                <div
+                                    key={bill._id}
+                                    className="card-pad flex flex-col gap-4 transition hover:shadow-md lg:flex-row lg:items-start lg:justify-between"
+                                >
                                     <div>
-                                        🚗 Vehicle: {bill.vehicle?.model || "N/A"}{" "}
-                                        {bill.vehicle?.plateNumber
-                                            ? `- ${bill.vehicle.plateNumber}`
-                                            : ""}
-                                    </div>
-
-                                    <div>💰 Amount: {formatCurrency(bill.totalPrice)}</div>
-
-                                    <div>
-                                        📅 Invoice Date:{" "}
-                                        {bill.date
-                                            ? new Date(bill.date).toLocaleDateString()
-                                            : "N/A"}
-                                    </div>
-
-                                    <div className="mt-1">
-                                        <span
-                                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClass(
-                                                bill.paymentStatus
-                                            )}`}
-                                        >
-                                            {formatStatus(bill.paymentStatus)}
-                                        </span>
-                                    </div>
-
-                                    {bill.notes && (
-                                        <div className="mt-2 text-sm text-brand-slate">
-                                            📝 Notes: {bill.notes}
+                                        <div className="font-semibold">
+                                            🦾 Customer:{" "}
+                                            {bill.customer
+                                                ? `${bill.customer.firstName} ${bill.customer.lastName}`
+                                                : "Unknown"}
                                         </div>
-                                    )}
 
-                                    <details className="mt-2">
-                                        <summary className="cursor-pointer text-brand-navy">
-                                            View Services
-                                        </summary>
+                                        <div>
+                                            🚗 Vehicle: {bill.vehicle?.model || "N/A"}{" "}
+                                            {bill.vehicle?.plateNumber
+                                                ? `- ${bill.vehicle.plateNumber}`
+                                                : ""}
+                                        </div>
 
-                                        <ul className="mt-2 list-disc pl-5">
-                                            {bill.services?.length > 0 ? (
-                                                bill.services.map((service, index) => (
-                                                    <li key={index}>
-                                                        {service.description} —{" "}
-                                                        {formatCurrency(service.price)}
+                                        <div>
+                                            💰 Amount: {formatCurrency(bill.totalPrice)}
+                                        </div>
+
+                                        <div>
+                                            📅 Invoice Date:{" "}
+                                            {bill.date
+                                                ? new Date(bill.date).toLocaleDateString()
+                                                : "N/A"}
+                                        </div>
+
+                                        <div className="mt-1">
+                                            <span
+                                                className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClass(
+                                                    bill.paymentStatus
+                                                )}`}
+                                            >
+                                                {formatStatus(bill.paymentStatus)}
+                                            </span>
+                                        </div>
+
+                                        {bill.notes && (
+                                            <div className="mt-2 text-sm text-brand-slate">
+                                                📝 Notes: {bill.notes}
+                                            </div>
+                                        )}
+
+                                        <details className="mt-2">
+                                            <summary className="cursor-pointer text-brand-navy">
+                                                View Services
+                                            </summary>
+
+                                            <ul className="mt-2 list-disc pl-5">
+                                                {bill.services?.length > 0 ? (
+                                                    bill.services.map((service, index) => (
+                                                        <li key={index}>
+                                                            {service.description} —{" "}
+                                                            {formatCurrency(service.price)}
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li className="text-brand-slate">
+                                                        No services listed
                                                     </li>
-                                                ))
-                                            ) : (
-                                                <li className="text-brand-slate">
-                                                    No services listed
-                                                </li>
-                                            )}
-                                        </ul>
-                                    </details>
+                                                )}
+                                            </ul>
+                                        </details>
 
-                                    <details className="mt-2">
-                                        <summary className="cursor-pointer text-brand-navy">
-                                            Parts Used
-                                        </summary>
+                                        <details className="mt-2">
+                                            <summary className="cursor-pointer text-brand-navy">
+                                                Parts Used
+                                            </summary>
 
-                                        <ul className="mt-2 list-disc pl-5">
-                                            {bill.maintenanceId?.partsUsed?.length > 0 ? (
-                                                bill.maintenanceId.partsUsed.map((part, index) => (
-                                                    <li key={index}>{part.name}</li>
-                                                ))
-                                            ) : (
-                                                <li className="text-brand-slate">
-                                                    No parts used
-                                                </li>
-                                            )}
-                                        </ul>
-                                    </details>
-                                </div>
+                                            <ul className="mt-2 list-disc pl-5">
+                                                {bill.maintenanceId?.partsUsed?.length > 0 ? (
+                                                    bill.maintenanceId.partsUsed.map(
+                                                        (part, index) => (
+                                                            <li key={index}>{part.name}</li>
+                                                        )
+                                                    )
+                                                ) : (
+                                                    <li className="text-brand-slate">
+                                                        No parts used
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </details>
+                                    </div>
 
-                                <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                                    {(isAdmin || canStaffEditInvoice(bill)) && (
+                                    <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
+                                        {canEdit && (
+                                            <button
+                                                onClick={() =>
+                                                    navigate(`/edit-bill/${bill._id}`)
+                                                }
+                                                className="btn-warning"
+                                            >
+                                                ✏️ Edit
+                                            </button>
+                                        )}
+
+                                        {admin && (
+                                            <button
+                                                onClick={() => handleArchive(bill._id)}
+                                                className="btn-danger"
+                                            >
+                                                📦 Archive
+                                            </button>
+                                        )}
+
                                         <button
-                                            onClick={() => navigate(`/edit-bill/${bill._id}`)}
-                                            className="btn-warning"
+                                            onClick={() => handlePrint(bill)}
+                                            className="btn-secondary"
                                         >
-                                            ✏️ Edit
+                                            🖶️ Print
                                         </button>
-                                    )}
-
-                                    {isAdmin && (
-                                        <button
-                                            onClick={() => handleArchive(bill._id)}
-                                            className="btn-danger"
-                                        >
-                                            📦 Archive
-                                        </button>
-                                    )}
-
-                                    <button
-                                        onClick={() => handlePrint(bill)}
-                                        className="btn-secondary"
-                                    >
-                                        🖶️ Print
-                                    </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 
@@ -439,9 +456,11 @@ const InvoiceList = () => {
                                 <ul className="list-disc space-y-1 pl-5 text-sm">
                                     {Array.isArray(printBill.maintenanceId?.partsUsed) &&
                                     printBill.maintenanceId.partsUsed.length > 0 ? (
-                                        printBill.maintenanceId.partsUsed.map((part, index) => (
-                                            <li key={index}>{part.name}</li>
-                                        ))
+                                        printBill.maintenanceId.partsUsed.map(
+                                            (part, index) => (
+                                                <li key={index}>{part.name}</li>
+                                            )
+                                        )
                                     ) : (
                                         <li className="text-gray-400">None</li>
                                     )}

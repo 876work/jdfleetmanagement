@@ -8,6 +8,7 @@ import {
 } from '../controllers/vehicleController.js';
 
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { denyStaff } from '../middlewares/permissions.js';
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.get('/:id', getVehicleById);
 router.put('/:id', updateVehicle);
 
 // DELETE vehicle
-router.delete('/:id', deleteVehicle);
+router.delete('/:id', denyStaff('Staff users cannot delete vehicles. Please contact an admin.'), deleteVehicle);
 
 export default router;
 

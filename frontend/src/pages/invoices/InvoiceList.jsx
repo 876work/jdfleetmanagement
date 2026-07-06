@@ -2,8 +2,17 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import InvoiceDocument, { formatInvoiceDate, formatInvoiceStatus, formatXcdCurrency, invoiceStatusClass } from "../../components/InvoiceDocument";
-
+import InvoiceDocument, {
+    formatInvoiceDate,
+    formatInvoiceStatus,
+    formatXcdCurrency,
+    invoiceStatusClass,
+} from "../../components/InvoiceDocument";
+import { useAuth } from "../../context/useAuth";
+import {
+    isAdmin as checkIsAdmin,
+    staffCanEditInvoice,
+} from "../../utils/permissions";
 
 const InvoiceList = () => {
     const [bills, setBills] = useState([]);
@@ -18,6 +27,9 @@ const InvoiceList = () => {
 
     const printRef = useRef();
     const navigate = useNavigate();
+
+    const { auth } = useAuth();
+    const admin = checkIsAdmin(auth);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -120,6 +132,7 @@ const InvoiceList = () => {
         try {
             await axiosInstance.patch(`/api/bills/${id}/archive`);
             toast.success("Invoice archived successfully");
+
             setBills((prev) => prev.filter((bill) => bill._id !== id));
         } catch (err) {
             toast.error(`Failed to archive invoice: ${err.message}`);
@@ -189,9 +202,13 @@ const InvoiceList = () => {
                             {vehicles.map((vehicle) => (
                                 <option key={vehicle._id} value={vehicle._id}>
                                     {vehicle.name ||
-                                        `${vehicle.brand || ""} ${vehicle.model || ""}`.trim() ||
+                                        `${vehicle.brand || ""} ${
+                                            vehicle.model || ""
+                                        }`.trim() ||
                                         "Unnamed vehicle"}{" "}
-                                    {vehicle.plateNumber ? `- ${vehicle.plateNumber}` : ""}
+                                    {vehicle.plateNumber
+                                        ? `- ${vehicle.plateNumber}`
+                                        : ""}
                                 </option>
                             ))}
                         </select>
@@ -227,7 +244,9 @@ const InvoiceList = () => {
                 </section>
 
                 {loading ? (
-                    <div className="card-pad text-brand-slate">Loading invoices...</div>
+                    <div className="card-pad text-brand-slate">
+                        Loading invoices...
+                    </div>
                 ) : filteredBills.length === 0 ? (
                     <div className="empty-state">
                         <div className="text-3xl">🧾</div>
@@ -249,122 +268,138 @@ const InvoiceList = () => {
                     </div>
                 ) : (
                     <div className="grid gap-4">
-                        {filteredBills.map((bill) => (
-                            <div
-                                key={bill._id}
-                                className="card-pad flex flex-col gap-4 transition hover:shadow-md lg:flex-row lg:items-start lg:justify-between"
-                            >
-                                <div>
-                                    <div className="font-semibold">
-                                        🦾 Customer:{" "}
-                                        {bill.customer
-                                            ? `${bill.customer.firstName} ${bill.customer.lastName}`
-                                            : "Unknown"}
-                                    </div>
+                        {filteredBills.map((bill) => {
+                            const canEdit = admin || staffCanEditInvoice(bill);
 
+                            return (
+                                <div
+                                    key={bill._id}
+                                    className="card-pad flex flex-col gap-4 transition hover:shadow-md lg:flex-row lg:items-start lg:justify-between"
+                                >
                                     <div>
-                                        🚗 Vehicle: {bill.vehicle?.model || "N/A"}{" "}
-                                        {bill.vehicle?.plateNumber
-                                            ? `- ${bill.vehicle.plateNumber}`
-                                            : ""}
-                                    </div>
-
-                                    <div>💰 Amount: {formatXcdCurrency(bill.totalPrice)}</div>
-
-                                    <div>
-                                        📅 Invoice Date:{" "}
-                                        {bill.date
-                                            ? formatInvoiceDate(bill.date)
-                                            : "N/A"}
-                                    </div>
-
-                                    <div className="mt-1">
-                                        <span
-                                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${invoiceStatusClass(
-                                                bill.paymentStatus
-                                            )}`}
-                                        >
-                                            {formatInvoiceStatus(bill.paymentStatus)}
-                                        </span>
-                                    </div>
-
-                                    {bill.notes && (
-                                        <div className="mt-2 text-sm text-brand-slate">
-                                            📝 Notes: {bill.notes}
+                                        <div className="font-semibold">
+                                            🦾 Customer:{" "}
+                                            {bill.customer
+                                                ? `${bill.customer.firstName} ${bill.customer.lastName}`
+                                                : "Unknown"}
                                         </div>
-                                    )}
 
-                                    <details className="mt-2">
-                                        <summary className="cursor-pointer text-brand-navy">
-                                            View Services
-                                        </summary>
+                                        <div>
+                                            🚗 Vehicle: {bill.vehicle?.model || "N/A"}{" "}
+                                            {bill.vehicle?.plateNumber
+                                                ? `- ${bill.vehicle.plateNumber}`
+                                                : ""}
+                                        </div>
 
-                                        <ul className="mt-2 list-disc pl-5">
-                                            {bill.services?.length > 0 ? (
-                                                bill.services.map((service, index) => (
-                                                    <li key={index}>
-                                                        {service.description} —{" "}
-                                                        {formatXcdCurrency(service.price)}
+                                        <div>
+                                            💰 Amount: {formatXcdCurrency(bill.totalPrice)}
+                                        </div>
+
+                                        <div>
+                                            📅 Invoice Date:{" "}
+                                            {bill.date
+                                                ? formatInvoiceDate(bill.date)
+                                                : "N/A"}
+                                        </div>
+
+                                        <div className="mt-1">
+                                            <span
+                                                className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${invoiceStatusClass(
+                                                    bill.paymentStatus
+                                                )}`}
+                                            >
+                                                {formatInvoiceStatus(bill.paymentStatus)}
+                                            </span>
+                                        </div>
+
+                                        {bill.notes && (
+                                            <div className="mt-2 text-sm text-brand-slate">
+                                                📝 Notes: {bill.notes}
+                                            </div>
+                                        )}
+
+                                        <details className="mt-2">
+                                            <summary className="cursor-pointer text-brand-navy">
+                                                View Services
+                                            </summary>
+
+                                            <ul className="mt-2 list-disc pl-5">
+                                                {bill.services?.length > 0 ? (
+                                                    bill.services.map((service, index) => (
+                                                        <li key={index}>
+                                                            {service.description} —{" "}
+                                                            {formatXcdCurrency(service.price)}
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li className="text-brand-slate">
+                                                        No services listed
                                                     </li>
-                                                ))
-                                            ) : (
-                                                <li className="text-brand-slate">
-                                                    No services listed
-                                                </li>
-                                            )}
-                                        </ul>
-                                    </details>
+                                                )}
+                                            </ul>
+                                        </details>
 
-                                    <details className="mt-2">
-                                        <summary className="cursor-pointer text-brand-navy">
-                                            Parts Used
-                                        </summary>
+                                        <details className="mt-2">
+                                            <summary className="cursor-pointer text-brand-navy">
+                                                Parts Used
+                                            </summary>
 
-                                        <ul className="mt-2 list-disc pl-5">
-                                            {bill.maintenanceId?.partsUsed?.length > 0 ? (
-                                                bill.maintenanceId.partsUsed.map((part, index) => (
-                                                    <li key={index}>{part.name}</li>
-                                                ))
-                                            ) : (
-                                                <li className="text-brand-slate">
-                                                    No parts used
-                                                </li>
-                                            )}
-                                        </ul>
-                                    </details>
+                                            <ul className="mt-2 list-disc pl-5">
+                                                {bill.maintenanceId?.partsUsed?.length > 0 ? (
+                                                    bill.maintenanceId.partsUsed.map(
+                                                        (part, index) => (
+                                                            <li key={index}>
+                                                                {part.name}
+                                                            </li>
+                                                        )
+                                                    )
+                                                ) : (
+                                                    <li className="text-brand-slate">
+                                                        No parts used
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </details>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
+                                        <button
+                                            onClick={() => handlePrint(bill)}
+                                            className="btn-primary"
+                                        >
+                                            View
+                                        </button>
+
+                                        {canEdit && (
+                                            <button
+                                                onClick={() =>
+                                                    navigate(`/edit-bill/${bill._id}`)
+                                                }
+                                                className="btn-warning"
+                                            >
+                                                ✏️ Edit
+                                            </button>
+                                        )}
+
+                                        {admin && (
+                                            <button
+                                                onClick={() => handleArchive(bill._id)}
+                                                className="btn-danger"
+                                            >
+                                                📦 Archive
+                                            </button>
+                                        )}
+
+                                        <button
+                                            onClick={() => handlePrint(bill)}
+                                            className="btn-secondary"
+                                        >
+                                            🖶️ Print
+                                        </button>
+                                    </div>
                                 </div>
-
-                                <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                                    <button
-                                        onClick={() => navigate(`/invoices/${bill._id}`)}
-                                        className="btn-primary"
-                                    >
-                                        View
-                                    </button>
-
-                                    <button
-                                        onClick={() => navigate(`/edit-bill/${bill._id}`)}
-                                        className="btn-warning"
-                                    >
-                                        ✏️ Edit
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleArchive(bill._id)}
-                                        className="btn-danger"
-                                    >
-                                        📦 Archive
-                                    </button>
-
-                                    <button
-                                        onClick={() => handlePrint(bill)}
-                                        className="btn-secondary"
-                                    >
-                                        🖶️ Print
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

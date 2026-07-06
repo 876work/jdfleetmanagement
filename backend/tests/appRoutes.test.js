@@ -37,4 +37,33 @@ describe('App routing and CORS', () => {
         expect(res.statusCode).toBe(204);
         expect(res.headers['access-control-allow-origin']).toBe('https://jdfleetmanagement.netlify.app');
     });
+
+    it('allows local development origin through CORS', async () => {
+        const res = await request(app)
+            .options('/api/auth/login')
+            .set('Origin', 'http://localhost:5173')
+            .set('Access-Control-Request-Method', 'POST');
+
+        expect(res.statusCode).toBe(204);
+        expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+    });
+
+    it('blocks random browser origins through CORS', async () => {
+        const res = await request(app)
+            .options('/api/auth/login')
+            .set('Origin', 'https://random.example.com')
+            .set('Access-Control-Request-Method', 'POST');
+
+        expect(res.headers['access-control-allow-origin']).toBeUndefined();
+    });
+
+    it('uses the same CORS rules for normal API requests', async () => {
+        const res = await request(app)
+            .get('/health')
+            .set('Origin', 'https://jdfleetmanagement.netlify.app');
+
+        expect(res.statusCode).toBe(200);
+        expect(res.headers['access-control-allow-origin']).toBe('https://jdfleetmanagement.netlify.app');
+    });
+
 });

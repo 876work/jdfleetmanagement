@@ -23,7 +23,13 @@ export default function EditMaintenance() {
                 const record = recordRes.data;
                 setForm({
                     vehicleId: record.vehicleId?._id || "",
+                    maintenanceType: record.maintenanceType || "",
                     serviceDate: record.serviceDate?.split("T")[0] || "",
+                    status: record.status || "completed",
+                    vendorName: record.vendorName || "",
+                    nextServiceDate: record.nextServiceDate?.split("T")[0] || "",
+                    odometerReading: record.odometerReading ?? "",
+                    notes: record.notes || "",
                     services: record.services || [],
                     partsUsed: record.partsUsed?.map(p => p._id) || []
                 });
@@ -83,6 +89,8 @@ export default function EditMaintenance() {
         }
     };
 
+    const statusOptions = ["scheduled", "in progress", "completed", "cancelled"];
+
     if (!form) return <p className="p-6">Loading...</p>;
 
     return (
@@ -103,12 +111,64 @@ export default function EditMaintenance() {
                 ))}
             </select>
 
-            <input
-                name="serviceDate"
-                type="date"
-                value={form.serviceDate || ""}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <input
+                    name="maintenanceType"
+                    value={form.maintenanceType || ""}
+                    onChange={handleChange}
+                    placeholder="Maintenance type"
+                    className="w-full border p-2 rounded"
+                />
+                <select name="status" value={form.status} onChange={handleChange} className="w-full border p-2 rounded">
+                    {statusOptions.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
+                </select>
+                <label className="text-sm text-brand-slate">
+                    Maintenance Date
+                    <input
+                        name="serviceDate"
+                        type="date"
+                        value={form.serviceDate || ""}
+                        onChange={handleChange}
+                        className="w-full border p-2 rounded mt-1"
+                    />
+                </label>
+                <label className="text-sm text-brand-slate">
+                    Next Service Date
+                    <input
+                        name="nextServiceDate"
+                        type="date"
+                        value={form.nextServiceDate || ""}
+                        onChange={handleChange}
+                        className="w-full border p-2 rounded mt-1"
+                    />
+                </label>
+                <input
+                    name="vendorName"
+                    value={form.vendorName || ""}
+                    onChange={handleChange}
+                    placeholder="Vendor or mechanic"
+                    className="w-full border p-2 rounded"
+                />
+                <input
+                    name="odometerReading"
+                    type="number"
+                    min="0"
+                    value={form.odometerReading}
+                    onChange={handleChange}
+                    placeholder="Mileage / odometer"
+                    className="w-full border p-2 rounded"
+                />
+            </div>
+
+            <textarea
+                name="notes"
+                value={form.notes || ""}
                 onChange={handleChange}
+                placeholder="Notes"
                 className="w-full border p-2 rounded mb-4"
+                rows="3"
             />
 
             <div className="mb-4">

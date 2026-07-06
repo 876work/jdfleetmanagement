@@ -88,7 +88,9 @@ export default function MaintenanceList() {
                             >
                                 <div className="font-medium text-lg">
                                     {isOpen ? "➖" : "➕"} {vehicle?.brand || "Unknown"} {vehicle?.model || ""}
+                                    <span className="ml-2 text-sm font-normal text-brand-slate">{record.maintenanceType || "General Maintenance"}</span>
                                 </div>
+                                <span className="text-xs uppercase tracking-wide bg-brand-soft text-brand-navy px-2 py-1 rounded">{record.status || "completed"}</span>
                             </button>
 
                             <AnimatePresence mode="wait">
@@ -101,8 +103,18 @@ export default function MaintenanceList() {
                                         transition={{ duration: 0.3 }}
                                         className="px-6 pb-4 pt-2 text-sm text-brand-slate"
                                     >
-                                        <p><strong>🆔 Plate:</strong> {vehicle.plateNumber}</p>
+                                        <p><strong>🆔 Plate:</strong> {vehicle?.plateNumber || "Unknown"}</p>
+                                        <p><strong>🧰 Type:</strong> {record.maintenanceType || "General Maintenance"}</p>
+                                        <p><strong>📌 Status:</strong> {record.status || "completed"}</p>
                                         <p><strong>📅 Date:</strong> {new Date(record.serviceDate).toLocaleDateString()}</p>
+                                        {record.nextServiceDate && (
+                                            <p><strong>⏭️ Next Service:</strong> {new Date(record.nextServiceDate).toLocaleDateString()}</p>
+                                        )}
+                                        {record.odometerReading !== undefined && record.odometerReading !== null && (
+                                            <p><strong>🛣️ Odometer:</strong> {Number(record.odometerReading).toLocaleString()} mi</p>
+                                        )}
+                                        {record.vendorName && <p><strong>👨‍🔧 Vendor/Mechanic:</strong> {record.vendorName}</p>}
+                                        {record.notes && <p><strong>📝 Notes:</strong> {record.notes}</p>}
 
                                         <p><strong>🛠️ Services:</strong></p>
                                         <ul className="list-disc pl-5 mt-1">

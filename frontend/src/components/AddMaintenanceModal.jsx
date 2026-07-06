@@ -4,7 +4,13 @@ import axios from "../utils/axiosInstance";
 export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles }) {
     const defaultForm = {
         vehicleId: "",
+        maintenanceType: "",
         serviceDate: new Date().toISOString().split("T")[0],
+        status: "scheduled",
+        vendorName: "",
+        nextServiceDate: "",
+        odometerReading: "",
+        notes: "",
         services: [],
         partsUsed: []
     };
@@ -54,9 +60,9 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
     };
 
     const handleSubmit = async () => {
-        if (!form.vehicleId || form.services.length === 0) {
+        if (!form.vehicleId || !form.serviceDate || form.services.length === 0) {
             console.log("📤 Data to submit:", form);
-            setErrorMessage("Please select a vehicle and add at least one service.");
+            setErrorMessage("Please select a vehicle, choose a date, and add at least one service.");
             return;
         }
 
@@ -76,6 +82,8 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
         onClose();
     };
 
+    const statusOptions = ["scheduled", "in progress", "completed", "cancelled"];
+
     if (!visible) return null;
 
     return (
@@ -94,12 +102,64 @@ export default function AddMaintenanceModal({ visible, onClose, onSave, vehicles
                     ))}
                 </select>
 
-                <input
-                    name="serviceDate"
-                    type="date"
-                    value={form.serviceDate}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                        name="maintenanceType"
+                        value={form.maintenanceType}
+                        onChange={handleChange}
+                        placeholder="Maintenance type (e.g. Oil Change)"
+                        className="w-full border p-2 rounded"
+                    />
+                    <select name="status" value={form.status} onChange={handleChange} className="w-full border p-2 rounded">
+                        {statusOptions.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
+                    <label className="text-sm text-brand-slate">
+                        Maintenance Date
+                        <input
+                            name="serviceDate"
+                            type="date"
+                            value={form.serviceDate}
+                            onChange={handleChange}
+                            className="w-full border p-2 rounded mt-1"
+                        />
+                    </label>
+                    <label className="text-sm text-brand-slate">
+                        Next Service Date
+                        <input
+                            name="nextServiceDate"
+                            type="date"
+                            value={form.nextServiceDate}
+                            onChange={handleChange}
+                            className="w-full border p-2 rounded mt-1"
+                        />
+                    </label>
+                    <input
+                        name="vendorName"
+                        value={form.vendorName}
+                        onChange={handleChange}
+                        placeholder="Vendor or mechanic"
+                        className="w-full border p-2 rounded"
+                    />
+                    <input
+                        name="odometerReading"
+                        type="number"
+                        min="0"
+                        value={form.odometerReading}
+                        onChange={handleChange}
+                        placeholder="Mileage / odometer"
+                        className="w-full border p-2 rounded"
+                    />
+                </div>
+
+                <textarea
+                    name="notes"
+                    value={form.notes}
                     onChange={handleChange}
+                    placeholder="Notes"
                     className="w-full border p-2 rounded"
+                    rows="3"
                 />
 
                 {/* Services Section */}

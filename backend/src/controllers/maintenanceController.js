@@ -3,21 +3,68 @@ import Vehicle from "../models/Vehicle.js";
 import Bill from "../models/Bill.js";
 import Part from "../models/Part.js";
 
+const VALID_MAINTENANCE_STATUSES = ["scheduled", "in progress", "completed", "cancelled"];
+
+const normalizeOptionalDate = (value) => value || undefined;
+
+const normalizeMaintenancePayload = (body) => {
+  const services = Array.isArray(body.services) ? body.services : [];
+  const normalizedServices = services
+    .map(service => ({
+      description: service.description?.trim(),
+      cost: Number(service.cost)
+    }))
+    .filter(service => service.description);
+
+  return {
+    vehicleId: body.vehicleId,
+    serviceDate: body.serviceDate,
+    maintenanceType: body.maintenanceType?.trim() || "General Maintenance",
+    status: body.status || "completed",
+    vendorName: body.vendorName?.trim() || "",
+    notes: body.notes?.trim() || "",
+    nextServiceDate: normalizeOptionalDate(body.nextServiceDate),
+    odometerReading: body.odometerReading === "" || body.odometerReading === undefined || body.odometerReading === null
+      ? undefined
+      : Number(body.odometerReading),
+    services: normalizedServices,
+    partsUsed: Array.isArray(body.partsUsed) ? body.partsUsed : []
+  };
+};
+
+const validateMaintenancePayload = ({ vehicleId, serviceDate, status, odometerReading, services }) => {
+  if (!vehicleId || !serviceDate || !services.length) {
+    return "vehicleId, serviceDate, and at least one service are required";
+  }
+
+  if (!VALID_MAINTENANCE_STATUSES.includes(status)) {
+    return "status must be scheduled, in progress, completed, or cancelled";
+  }
+
+  if (odometerReading !== undefined && (Number.isNaN(odometerReading) || odometerReading < 0)) {
+    return "odometerReading must be a non-negative number";
+  }
+
+  if (services.some(service => Number.isNaN(service.cost) || service.cost < 0)) {
+    return "service costs must be non-negative numbers";
+  }
+
+  return null;
+};
+
 export const createMaintenanceRecord = async (req, res) => {
   try {
-    const { vehicleId, serviceDate, services, partsUsed } = req.body;
+    const payload = normalizeMaintenancePayload(req.body);
+    const validationError = validateMaintenancePayload(payload);
 
-    if (!vehicleId || !services?.length) {
-      return res.status(400).json({ message: "vehicleId and services are required" });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
+    const { vehicleId, serviceDate, services, partsUsed } = payload;
+
     // 1. Save the new maintenance record
-    const newRecord = new MaintenanceRecord({
-      vehicleId,
-      serviceDate,
-      services,
-      partsUsed
-    });
+    const newRecord = new MaintenanceRecord(payload);
 
     const savedRecord = await newRecord.save();
     const populatedRecord = await savedRecord.populate("vehicleId partsUsed");
@@ -117,7 +164,14 @@ export const getMaintenanceById = async (req, res) => {
 
 export const updateMaintenance = async (req, res) => {
   try {
-    const { vehicleId, serviceDate, services, partsUsed } = req.body;
+    const payload = normalizeMaintenancePayload(req.body);
+    const validationError = validateMaintenancePayload(payload);
+
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
+
+    const { serviceDate, services, partsUsed } = payload;
 
     // Read previous maintenance to compare parts inventory
     const oldRecord = await MaintenanceRecord.findById(req.params.id).lean();
@@ -126,12 +180,7 @@ export const updateMaintenance = async (req, res) => {
 
     const updated = await MaintenanceRecord.findByIdAndUpdate(
       req.params.id,
-      {
-        vehicleId,
-        serviceDate,
-        services,
-        partsUsed
-      },
+      payload,
       { new: true }
     )
       .populate("vehicleId")

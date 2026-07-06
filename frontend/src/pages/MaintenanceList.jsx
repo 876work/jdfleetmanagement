@@ -69,7 +69,7 @@ export default function MaintenanceList() {
             <div className="flex justify-end mb-6">
                 <button
                     onClick={() => setShowModal(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-deep"
                 >
                     ➕ Add Maintenance
                 </button>
@@ -84,7 +84,7 @@ export default function MaintenanceList() {
                         <li key={record._id} className="bg-white border rounded shadow">
                             <button
                                 onClick={() => toggleExpand(record._id)}
-                                className="w-full flex justify-between items-center px-4 py-3 hover:bg-gray-100 transition"
+                                className="w-full flex justify-between items-center px-4 py-3 hover:bg-brand-soft transition"
                             >
                                 <div className="font-medium text-lg">
                                     {isOpen ? "➖" : "➕"} {vehicle?.brand || "Unknown"} {vehicle?.model || ""}
@@ -99,7 +99,7 @@ export default function MaintenanceList() {
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.3 }}
-                                        className="px-6 pb-4 pt-2 text-sm text-gray-700"
+                                        className="px-6 pb-4 pt-2 text-sm text-brand-slate"
                                     >
                                         <p><strong>🆔 Plate:</strong> {vehicle.plateNumber}</p>
                                         <p><strong>📅 Date:</strong> {new Date(record.serviceDate).toLocaleDateString()}</p>
@@ -125,7 +125,7 @@ export default function MaintenanceList() {
                                         <div className="flex gap-3 mt-4">
                                             <button
                                                 onClick={() => navigate(`/edit-maintenance/${record._id}`)}
-                                                className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
+                                                className="bg-brand-gold hover:bg-brand-highlight text-white px-3 py-1 rounded"
                                             >
                                                 ✏️ Edit
                                             </button>

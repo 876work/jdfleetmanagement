@@ -77,7 +77,7 @@ const AddBill = () => {
 
     return (
         <div className="p-6 max-w-3xl mx-auto">
-            <h1 className="text-3xl font-bold text-center mb-10"> ➕ Create New Invoice</h1>
+            <h1 className="text-3xl font-bold text-center mb-10"> ➕ Create Fleet Report</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Customer */}
@@ -137,7 +137,7 @@ const AddBill = () => {
                             <button
                                 type="button"
                                 onClick={() => remove(index)}
-                                className="text-red-500 font-bold"
+                                className="text-brand-error font-bold"
                             >
                                 ❌
                             </button>
@@ -147,7 +147,7 @@ const AddBill = () => {
                     <button
                         type="button"
                         onClick={() => append({ description: '', price: 0 })}
-                        className="text-blue-600 hover:underline mt-1">+ Add Service</button>
+                        className="text-brand-navy hover:underline mt-1">+ Add Service</button>
                 </div>
                 {/* Parts Section */}
                 <div>
@@ -185,7 +185,7 @@ const AddBill = () => {
                 <div className="flex gap-4 mt-6">
                     <button
                         type="submit"
-                        className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+                        className="bg-brand-success text-white px-6 py-2 rounded hover:bg-brand-success"
                     >
                         Save Invoice
                     </button>
@@ -193,7 +193,7 @@ const AddBill = () => {
                     <button
                         type="button"
                         onClick={() => navigate('/invoices')}
-                        className="bg-gray-300 text-gray-800 px-6 py-2 rounded hover:bg-gray-400"
+                        className="bg-gray-300 text-brand-text px-6 py-2 rounded hover:bg-gray-400"
                     >
                         Cancel
                     </button>

@@ -42,7 +42,7 @@ export default function InvoiceCard({
                                 bill.maintenanceId.partsUsed.length > 0 ? (
                                 bill.maintenanceId.partsUsed.map((part, idx) => <li key={idx}>{part.name}</li>)
                             ) : (
-                                <li className="text-gray-500">None</li>
+                                <li className="text-brand-slate">None</li>
                             )}
                         </ul>
                     </div>
@@ -55,12 +55,12 @@ export default function InvoiceCard({
                 {/* Buttons are hidden in print */}
                 <div className="flex flex-col items-end gap-2 no-print">
                     {onEdit && (
-                        <button onClick={onEdit} className="bg-yellow-400 text-black px-5 py-2 rounded hover:bg-yellow-500">
+                        <button onClick={onEdit} className="bg-brand-gold text-white px-5 py-2 rounded hover:bg-brand-highlight">
                             ✏️ Edit
                         </button>
                     )}
                     {onArchive && (
-                        <button onClick={onArchive} className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">
+                        <button onClick={onArchive} className="bg-brand-error text-white px-3 py-2 rounded hover:bg-brand-error">
                             📦 Archive
                         </button>
                     )}

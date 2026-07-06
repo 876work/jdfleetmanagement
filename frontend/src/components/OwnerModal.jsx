@@ -82,11 +82,11 @@ export default function OwnerModal({ visible, onClose, onSave, existingOwners = 
                     required
                 />
 
-                {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+                {error && <p className="text-brand-error text-sm mb-2">{error}</p>}
 
                 <div className="flex justify-end space-x-2">
-                    <button onClick={onClose} className="bg-gray-300 text-black px-4 py-2 rounded">Cancel</button>
-                    <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save</button>
+                    <button onClick={onClose} className="bg-gray-300 text-white px-4 py-2 rounded">Cancel</button>
+                    <button onClick={handleSave} className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success">Save</button>
                 </div>
             </div>
         </div>

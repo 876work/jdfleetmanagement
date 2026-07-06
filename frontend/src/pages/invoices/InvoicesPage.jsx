@@ -49,7 +49,7 @@ export default function InvoicesPage() {
 
             <div className="overflow-auto rounded shadow border">
                 <table className="min-w-full text-sm text-left">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-brand-soft">
                         <tr>
                             <th className="p-3">No.</th>
                             <th className="p-3">Plate</th>
@@ -61,7 +61,7 @@ export default function InvoicesPage() {
                     </thead>
                     <tbody>
                         {filtered.map((inv, index) => (
-                            <tr key={inv._id} className="border-b hover:bg-gray-50 transition">
+                            <tr key={inv._id} className="border-b hover:bg-brand-soft transition">
                                 <td className="p-3">{index + 1}</td>
                                 <td className="p-3">{inv.vehicle?.plateNumber || "—"}</td>
                                 <td className="p-3">

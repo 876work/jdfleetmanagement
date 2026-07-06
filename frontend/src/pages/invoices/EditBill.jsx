@@ -139,7 +139,7 @@ const EditBill = () => {
                                     {...register(`services.${index}.price`)}
                                     className="border p-2 rounded w-32"
                                 />
-                                <button type="button" onClick={() => remove(index)} className="text-red-500">
+                                <button type="button" onClick={() => remove(index)} className="text-brand-error">
                                     🗑️
                                 </button>
                             </div>
@@ -147,7 +147,7 @@ const EditBill = () => {
                         <button
                             type="button"
                             onClick={() => append({ description: '', price: '' })}
-                            className="text-sm text-blue-600"
+                            className="text-sm text-brand-navy"
                         >
                             ➕ Add Service
                         </button>
@@ -182,14 +182,14 @@ const EditBill = () => {
                     <button
                         type="button"
                         onClick={() => navigate('/invoices')}
-                        className="bg-gray-300 text-gray-800 px-5 py-2 rounded hover:bg-gray-400"
+                        className="bg-gray-300 text-brand-text px-5 py-2 rounded hover:bg-gray-400"
                     >
                         ❌ Cancel
                     </button>
 
                     <button
                         type="submit"
-                        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                        className="bg-brand-navy text-white px-6 py-2 rounded hover:bg-brand-deep"
                     >
                         💾 Save Changes
                     </button>

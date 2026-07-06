@@ -12,37 +12,40 @@ export default function TopNav() {
         navigate("/", { replace: true });
     };
 
-    // NOTE: A simple, responsive top bar with Tailwind
     return (
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b">
-            <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-                {/* Left: Brand */}
-                <div
-                    className="font-bold text-lg cursor-pointer select-none"
+        <header className="sticky top-0 z-40 border-b border-brand-border bg-white/95 shadow-sm backdrop-blur">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+                <button
+                    className="flex items-center gap-3 text-left"
                     onClick={() => navigate("/dashboard")}
-                    title="Go to Dashboard"
+                    title="Go to JD Fleet Management Dashboard"
                 >
-                    VMS <span className="text-blue-600">Dashboard</span>
-                </div>
+                    <img
+                        src="/JD_Carriers_logo.svg"
+                        alt="JD Carriers logo"
+                        className="h-10 w-auto object-contain"
+                        onError={(event) => { event.currentTarget.style.display = "none"; }}
+                    />
+                    <span className="hidden sm:block leading-tight">
+                        <span className="block text-sm font-extrabold tracking-wide text-brand-deep">JD Fleet Management</span>
+                        <span className="block text-xs font-medium text-brand-gold">JD Carriers</span>
+                    </span>
+                </button>
 
-                {/* Middle: Quick links */}
-                <nav className="hidden sm:flex items-center gap-3 text-sm">
-                    {/* NOTE: NavLink applies an active class automatically, we style it via a function */}
+                <nav className="hidden md:flex items-center gap-2 text-sm">
                     <AppLink to="/dashboard">Dashboard</AppLink>
                     <AppLink to="/vehicles">Vehicles</AppLink>
                     <AppLink to="/maintenance">Maintenance</AppLink>
-                    <AppLink to="/invoices">Invoices</AppLink>
+                    <AppLink to="/invoices">Reports</AppLink>
                 </nav>
 
-                {/* Right: User + Logout */}
-                <div className="flex items-center gap-2">
-                    <span className="hidden sm:inline text-gray-600 text-sm">
-                        {/* NOTE: Show username if available */}
+                <div className="flex items-center gap-3">
+                    <span className="hidden sm:inline text-brand-slate text-sm">
                         {auth?.user?.username ? `Hi, ${auth.user.username}` : "Logged in"}
                     </span>
                     <button
                         onClick={handleLogout}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm"
+                        className="rounded-lg bg-brand-error px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-red-800"
                         title="Logout"
                     >
                         Logout
@@ -53,15 +56,14 @@ export default function TopNav() {
     );
 }
 
-/** Small helper to keep active link styles consistent */
 function AppLink({ to, children }) {
     return (
         <NavLink
             to={to}
             className={({ isActive }) =>
                 [
-                    "px-3 py-1.5 rounded-lg hover:bg-gray-100 transition",
-                    isActive ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600",
+                    "px-3 py-2 rounded-lg transition hover:bg-brand-soft hover:text-brand-navy",
+                    isActive ? "bg-brand-navy text-white font-semibold shadow-sm" : "text-brand-slate",
                 ].join(" ")
             }
         >

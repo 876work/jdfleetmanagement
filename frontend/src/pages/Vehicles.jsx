@@ -93,20 +93,25 @@ export default function Vehicles() {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-center mb-10">🚗 Vehicles List</h1>
+      <h1 className="text-3xl font-bold text-center mb-10">🚗 Fleet Overview</h1>
 
       <div className="flex justify-between items-center mb-6">
-        <p className="text-gray-600">👋 Welcome, {auth?.user?.username}</p>
+        <p className="text-brand-slate">👋 Welcome, {auth?.user?.username}</p>
         <div className="flex gap-4">
-          <button onClick={() => navigate("/vehicles/new")} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Vehicle</button>
-          <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
-          <button onClick={() => navigate("/maintenance")} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"> 🛠️ Maintenance </button>
-          <button onClick={() => navigate('/invoices')} className="bg-purple-500 text-white px-4 py-2 rounded" > 📄 Invoices </button>
+          <button onClick={() => navigate("/vehicles/new")} className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-deep">Add Vehicle</button>
+          <button onClick={handleLogout} className="bg-brand-error text-white px-4 py-2 rounded hover:bg-red-800">Logout</button>
+          <button onClick={() => navigate("/maintenance")} className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success"> 🛠️ Maintenance </button>
+          <button onClick={() => navigate('/invoices')} className="bg-brand-deep text-white px-4 py-2 rounded" > 📄 Invoices </button>
         </div>
       </div>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {error && <p className="text-brand-error mb-4">{error}</p>}
 
+      {vehicles.length === 0 ? (
+        <div className="rounded-xl border border-brand-border bg-white p-8 text-center text-brand-slate shadow-sm">
+          No vehicles have been added yet.
+        </div>
+      ) : (
       <ul className="space-y-4">
         {vehicles.map((vehicle) => {
           const isOpen = expandedId === vehicle._id;
@@ -119,7 +124,7 @@ export default function Vehicles() {
               className="bg-white border rounded shadow-lg transition-transform transform hover:scale-[1.018] hover:shadow-lg">
               <button
                 onClick={() => toggleExpand(vehicle._id)}
-                className="w-full text-left flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition"
+                className="w-full text-left flex items-center justify-between px-4 py-3 hover:bg-brand-soft transition"
               >
                 <div className="font-semibold text-lg flex items-center gap-2">
                   {isOpen ? "➖" : "➕"} 🚘 {vehicle.brand} – {vehicle.model}
@@ -134,7 +139,7 @@ export default function Vehicles() {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="px-6 pb-4 pt-2 overflow-hidden text-sm text-gray-700"
+                    className="px-6 pb-4 pt-2 overflow-hidden text-sm text-brand-slate"
                   >
                     <p className="mb-1"><span className="font-medium">🆔 Plate:</span> {vehicle.plateNumber}</p>
                     <p className="mb-1"><span className="font-medium">📅 Year:</span> {vehicle.year}</p>
@@ -147,13 +152,13 @@ export default function Vehicles() {
                           setEditingVehicle(vehicle);
                           setShowEditModal(true);
                         }}
-                        className="bg-yellow-400 text-black px-3 py-1 rounded flex items-center gap-1 hover:bg-yellow-500"
+                        className="bg-brand-gold text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-brand-highlight"
                       >
                         ✏️ Edit
                       </button>
                       <button
                         onClick={() => confirmDelete(vehicle)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                        className="bg-brand-error hover:bg-red-800 text-white px-3 py-1 rounded"
                       >
                         🗑️ Delete
                       </button>
@@ -165,6 +170,7 @@ export default function Vehicles() {
           );
         })}
       </ul>
+      )}
 
       {/* Edit Modal */}
       <EditVehicleModal

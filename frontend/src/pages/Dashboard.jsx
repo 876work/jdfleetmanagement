@@ -63,7 +63,7 @@ export default function Dashboard() {
             } catch (err) {
                 console.error("Dashboard recent error:", err);
 
-                setRecentError("Failed to fetch recent data");
+                setRecentError("Unable to load recent fleet activity.");
             } finally {
                 setLoadingRecent(false);
             }
@@ -95,13 +95,14 @@ export default function Dashboard() {
 
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-brand-soft">
             {/* Header */}
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold">Dashboard</h1>
-                        <p className="text-gray-600 mt-1">
+                        <h1 className="text-3xl font-bold text-brand-deep">JD Fleet Management Dashboard</h1>
+                        <p className="mt-2 max-w-3xl text-brand-slate">A clear overview of fleet activity, vehicle status, driver assignments, maintenance, and operational performance.</p>
+                        <p className="text-brand-slate mt-3">
                             {auth?.user?.username ? `Welcome, ${auth.user.username}!` : "Welcome!"}
                         </p>
                     </div>
@@ -111,21 +112,21 @@ export default function Dashboard() {
                         {/* NOTE: We navigate to existing pages */}
                         <button
                             onClick={() => navigate("/vehicles")}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                            className="bg-brand-navy text-white px-4 py-2 rounded-lg hover:bg-brand-deep"
                         >
                             🚗 Vehicles
                         </button>
                         <button
                             onClick={() => navigate("/maintenance")}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                            className="bg-brand-gold text-white px-4 py-2 rounded-lg hover:bg-brand-highlight"
                         >
                             🛠️ Maintenance
                         </button>
                         <button
                             onClick={() => navigate("/invoices")}
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                            className="bg-brand-deep text-white px-4 py-2 rounded-lg hover:bg-brand-navy"
                         >
-                            📄 Invoices
+                            📊 Reports
                         </button>
                     </div>
                 </div>
@@ -135,10 +136,10 @@ export default function Dashboard() {
                     <StatCard
                         title="Vehicles"
                         value={stats.vehicles}
-                        subtitle="Total registered"
+                        subtitle="Active fleet assets"
                         icon="🚘"
                         loading={loading}
-                        color="from-blue-500 to-blue-600"
+                        color="from-brand-navy to-brand-deep"
                     />
                     <StatCard
                         title="Maintenance"
@@ -146,15 +147,15 @@ export default function Dashboard() {
                         subtitle="All records"
                         icon="🛠️"
                         loading={loading}
-                        color="from-green-500 to-green-600"
+                        color="from-brand-gold to-brand-highlight"
                     />
                     <StatCard
-                        title="Invoices"
+                        title="Reports"
                         value={stats.invoices}
-                        subtitle="Active (not archived)"
+                        subtitle="Operational documents"
                         icon="🧾"
                         loading={loading}
-                        color="from-purple-500 to-purple-600"
+                        color="from-brand-deep to-brand-navy"
                     />
                 </div>
 
@@ -164,16 +165,16 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="bg-white border rounded-xl p-4 shadow-sm"
+                        className="bg-white border border-brand-border rounded-xl p-4 shadow-sm"
                     >
-                        <h2 className="font-semibold text-lg mb-3">Recent Maintenance</h2>
+                        <h2 className="font-semibold text-lg mb-3 text-brand-deep">Recent Maintenance</h2>
 
                         {loadingRecent ? (
                             <ListSkeleton />
                         ) : recentError ? (
-                            <p className="text-red-500 text-sm">{recentError}</p>
+                            <p className="text-brand-error text-sm">{recentError}</p>
                         ) : recentMaint.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No recent items.</p>
+                            <p className="text-brand-slate text-sm">No maintenance records available.</p>
                         ) : (
                             <ul className="divide-y">
                                 {recentMaint.map((rec) => {
@@ -191,12 +192,12 @@ export default function Dashboard() {
                                         <li key={rec._id} className="py-3">
                                             <div className="flex items-start justify-between">
                                                 <div>
-                                                    <p className="font-medium text-gray-800">{title}</p>
-                                                    <p className="text-xs text-gray-500 mt-0.5">
+                                                    <p className="font-medium text-brand-text">{title}</p>
+                                                    <p className="text-xs text-brand-slate mt-0.5">
                                                         {date ? date.toLocaleDateString() : "No date"} • {rec?.services?.length || 0} services
                                                     </p>
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-700">
+                                                <div className="text-sm font-semibold text-brand-slate">
                                                     {total.toLocaleString()} $
                                                 </div>
                                             </div>
@@ -212,15 +213,15 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25, delay: 0.05 }}
-                        className="bg-white border rounded-xl p-4 shadow-sm"
+                        className="bg-white border border-brand-border rounded-xl p-4 shadow-sm"
                     >
-                        <h2 className="font-semibold text-lg mb-3">Recent Invoices</h2>
+                        <h2 className="font-semibold text-lg mb-3 text-brand-deep">Recent Reports</h2>
                         {loadingRecent ? (
                             <ListSkeleton />
                         ) : recentError ? (
-                            <p className="text-red-500 text-sm">{recentError}</p>
+                            <p className="text-brand-error text-sm">{recentError}</p>
                         ) : recentBills.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No recent items.</p>
+                            <p className="text-brand-slate text-sm">No reports available at this time.</p>
                         ) : (
                             <ul className="divide-y">
                                 {recentBills.map((bill) => {
@@ -240,12 +241,12 @@ export default function Dashboard() {
                                         <li key={bill._id} className="py-3">
                                             <div className="flex items-start justify-between">
                                                 <div>
-                                                    <p className="font-medium text-gray-800">{title}</p>
-                                                    <p className="text-xs text-gray-500 mt-0.5">
+                                                    <p className="font-medium text-brand-text">{title}</p>
+                                                    <p className="text-xs text-brand-slate mt-0.5">
                                                         {name} • {date ? date.toLocaleDateString() : "No date"}
                                                     </p>
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-700">
+                                                <div className="text-sm font-semibold text-brand-slate">
                                                     {total.toLocaleString()} $
                                                 </div>
                                             </div>
@@ -260,30 +261,30 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="bg-red-50 border-l-4 border-red-500 p-4 shadow-md rounded-lg"
+                        className="bg-brand-tint border-l-4 border-brand-warning p-4 shadow-md rounded-lg"
                     >
                         <div className="flex items-center mb-2">
-                            <span className="text-red-500 text-xl mr-2">⚠️</span>
-                            <h2 className="font-semibold text-lg text-red-700">Low Stock Parts</h2>
+                            <span className="text-brand-warning text-xl mr-2">⚠️</span>
+                            <h2 className="font-semibold text-lg text-brand-warning">Low Stock Parts</h2>
                         </div>
 
                         {loadingStock ? (
                             <ListSkeleton />
                         ) : stockError ? (
-                            <p className="text-red-500 text-sm">{stockError}</p>
+                            <p className="text-brand-error text-sm">{stockError}</p>
                         ) : lowStockParts.length === 0 ? (
-                            <p className="text-gray-600 text-sm">All parts are sufficiently stocked.</p>
+                            <p className="text-brand-slate text-sm">Fleet parts inventory is sufficiently stocked.</p>
                         ) : (
-                            <ul className="divide-y divide-red-200">
+                            <ul className="divide-y divide-brand-neutral">
                                 {lowStockParts.map((part) => (
                                     <li key={part._id} className="py-2 flex justify-between items-center">
-                                        <span className="font-medium text-red-800">{part.name}</span>
-                                        <span className="bg-red-200 text-red-800 text-sm px-2 py-1 rounded-full">
+                                        <span className="font-medium text-brand-warning">{part.name}</span>
+                                        <span className="bg-brand-tint text-brand-warning text-sm px-2 py-1 rounded-full">
                                             {part.quantity} left
                                         </span>
                                         <button
                                             onClick={() => navigate(`/parts/${part._id}/order`)}
-                                            className="ml-2 bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600"
+                                            className="ml-2 bg-brand-gold text-white px-2 py-1 text-xs rounded hover:bg-brand-highlight"
                                         >
                                             Order a Part
                                         </button>
@@ -309,19 +310,19 @@ function StatCard({ title, value, subtitle, icon, loading, color }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
-            className="bg-white rounded-2xl border shadow-sm overflow-hidden"
+            className="bg-white rounded-2xl border border-brand-border shadow-sm overflow-hidden"
         >
             <div className={`h-2 bg-gradient-to-r ${color}`} />
             <div className="p-5">
                 <div className="flex items-center justify-between">
                     <div className="text-2xl">{icon}</div>
-                    <div className="text-xs text-gray-500">{subtitle}</div>
+                    <div className="text-xs text-brand-slate">{subtitle}</div>
                 </div>
-                <h3 className="mt-3 text-gray-700 font-semibold">{title}</h3>
+                <h3 className="mt-3 text-brand-slate font-semibold">{title}</h3>
                 <div className="mt-1">
                     {loading ? (
                         // NOTE: Simple skeleton shimmer
-                        <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+                        <div className="h-8 w-16 bg-brand-neutral animate-pulse rounded" />
                     ) : (
                         <p className="text-3xl font-bold">{value}</p>
                     )}
@@ -337,8 +338,8 @@ function ListSkeleton() {
         <ul className="space-y-3">
             {[...Array(4)].map((_, i) => (
                 <li key={i} className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                    <div className="h-3 bg-gray-100 rounded w-1/3 mt-2" />
+                    <div className="h-4 bg-brand-neutral rounded w-2/3" />
+                    <div className="h-3 bg-brand-soft rounded w-1/3 mt-2" />
                 </li>
             ))}
         </ul>

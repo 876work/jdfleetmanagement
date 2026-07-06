@@ -131,7 +131,7 @@ export default function EditMaintenance() {
                         <button onClick={() => removeService(idx)} className="text-red-600">🗑️</button>
                     </div>
                 ))}
-                <button onClick={addService} className="text-blue-600 hover:underline">+ Add Service</button>
+                <button onClick={addService} className="text-brand-navy hover:underline">+ Add Service</button>
             </div>
 
             <div className="mb-4">
@@ -152,7 +152,7 @@ export default function EditMaintenance() {
 
             <div className="flex justify-end gap-2">
                 <button onClick={() => navigate("/maintenance")} className="bg-gray-300 px-4 py-2 rounded">Cancel</button>
-                <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
+                <button onClick={handleSubmit} className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-brand-deep">Save</button>
             </div>
         </div>
     );

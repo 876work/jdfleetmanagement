@@ -77,10 +77,10 @@ export default function AddVehicle() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-brand-soft">
       <div className="max-w-xl w-full p-6 bg-white rounded shadow">
-        <h1 className="text-2xl font-bold text-center mb-4">🚗 Add New Vehicle</h1>
-        {message && <p className="mb-4 text-blue-600">{message}</p>}
+        <h1 className="text-2xl font-bold text-center mb-4">🚗 Add Fleet Vehicle</h1>
+        {message && <p className="mb-4 text-brand-navy">{message}</p>}
         <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
           <input name="plateNumber" value={formData.plateNumber} onChange={handleChange} type="text" placeholder="Plate Number" className="w-full border px-3 py-2 rounded" required />
           <input name="brand" value={formData.brand} onChange={handleChange} type="text" placeholder="Brand" className="w-full border px-3 py-2 rounded" required />
@@ -93,7 +93,7 @@ export default function AddVehicle() {
                 <option key={cat._id} value={cat._id}>{cat.name}</option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowCategoryModal(true)} className="text-blue-600 underline text-sm mt-1">+ Add New Category</button>
+            <button type="button" onClick={() => setShowCategoryModal(true)} className="text-brand-navy underline text-sm mt-1">+ Add New Category</button>
           </div>
           <div>
             <select name="ownerId" value={formData.ownerId} onChange={handleChange} className="w-full border px-3 py-2 rounded" required>
@@ -102,9 +102,9 @@ export default function AddVehicle() {
                 <option key={owner._id} value={owner._id}>{owner.firstName} {owner.lastName}</option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowOwnerModal(true)} className="text-blue-600 underline text-sm mt-1">+ Add New Owner</button>
+            <button type="button" onClick={() => setShowOwnerModal(true)} className="text-brand-navy underline text-sm mt-1">+ Add New Owner</button>
           </div>
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit</button>
+          <button type="submit" className="bg-brand-success text-white px-4 py-2 rounded hover:bg-brand-success">Submit</button>
         </form>
         <CategoryModal visible={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSave={addNewCategory} />
         <OwnerModal visible={showOwnerModal} onClose={() => setShowOwnerModal(false)} onSave={addNewOwner} existingOwners={owners} />

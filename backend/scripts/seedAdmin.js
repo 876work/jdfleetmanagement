@@ -35,20 +35,19 @@ const seedAdmin = async () => {
     $or: [{ username }, { email }]
   });
 
-  if (existingAdmin) {
-    console.log('Admin seed skipped: a user with that username or email already exists.');
-    return;
-  }
+  const admin = existingAdmin || new User();
 
-  const admin = new User({
-    username,
-    email,
-    passwordHash: password,
-    role: 'admin'
-  });
+  admin.username = username;
+  admin.email = email;
+  admin.passwordHash = password;
+  admin.role = 'admin';
 
   await admin.save();
-  console.log(`Admin user created for username "${username}" and email "${email}".`);
+  console.log(
+    existingAdmin
+      ? `Admin user updated for username "${username}" and email "${email}".`
+      : `Admin user created for username "${username}" and email "${email}".`
+  );
 };
 
 seedAdmin()

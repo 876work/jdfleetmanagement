@@ -37,6 +37,7 @@ export default function TopNav() {
                     <AppLink to="/dashboard">Dashboard</AppLink>
                     <AppLink to="/vehicles">Vehicles</AppLink>
                     <AppLink to="/maintenance">Maintenance</AppLink>
+                    {(auth?.user?.role === "admin" || auth?.user?.role === "staff") && <AppLink to="/tracking">Live Tracking</AppLink>}
                     <AppLink to="/invoices">Reports</AppLink>
                     {auth?.user?.role === "admin" && <AppLink to="/users">Users</AppLink>}
                 </nav>
@@ -65,6 +66,7 @@ export default function TopNav() {
                         <MobileLink to="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</MobileLink>
                         <MobileLink to="/vehicles" onClick={() => setMenuOpen(false)}>Vehicles</MobileLink>
                         <MobileLink to="/maintenance" onClick={() => setMenuOpen(false)}>Maintenance</MobileLink>
+                        {(auth?.user?.role === "admin" || auth?.user?.role === "staff") && <MobileLink to="/tracking" onClick={() => setMenuOpen(false)}>Live Tracking</MobileLink>}
                         <MobileLink to="/invoices" onClick={() => setMenuOpen(false)}>Reports</MobileLink>
                         {auth?.user?.role === "admin" && <MobileLink to="/users" onClick={() => setMenuOpen(false)}>Users</MobileLink>}
                         <div className="mt-2 flex items-center justify-between gap-3 border-t border-brand-border pt-3">

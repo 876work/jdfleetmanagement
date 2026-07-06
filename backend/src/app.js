@@ -16,30 +16,31 @@ import './models/index.js';
 const app = express();
 
 // Middleware
-// Strict CORS: allow only localhost (dev) and your Vercel domain
+// Strict CORS: allow local development and the deployed Netlify frontend.
 const allowedOrigins = [
-    "http://localhost:5173",                          // Vite dev
-    "https://vehicle-management-system-vms.vercel.app" // Vercel frontend
-];
+    "http://localhost:5173",
+    "https://jdfleetmanagement.netlify.app",
+    process.env.CLIENT_URL,
+].filter(Boolean);
 
-app.use(
-    cors({
-        // Decide which origins are allowed
-        origin(origin, callback) {
-            // Allow server-to-server tools (no origin) like Postman/curl
-            if (!origin) return callback(null, true);
-            return allowedOrigins.includes(origin)
-                ? callback(null, true)
-                : callback(new Error("Not allowed by CORS"));
-        },
-        credentials: true, // allow cookies/Authorization header
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-    })
-);
+const corsOptions = {
+    // Decide which origins are allowed
+    origin(origin, callback) {
+        // Allow server-to-server tools (no origin) like Postman/curl
+        if (!origin) return callback(null, true);
+        return allowedOrigins.includes(origin)
+            ? callback(null, true)
+            : callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true, // allow cookies/Authorization header
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 
 // Handle preflight requests quickly
-app.options(/.*/, cors());
+app.options(/.*/, cors(corsOptions));
 
 // Parse JSON bodies
 app.use(express.json());
@@ -59,9 +60,8 @@ app.use('/api/bills', billRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/parts', partRoutes);
 
-// Redirect root to the Vercel frontend
 app.get("/", (req, res) => {
-    res.redirect(302, "https://vehicle-management-system-vms.vercel.app/");
+    res.json({ message: "JD Fleet Management API is running" });
 });
 
 app.get("/health", (req, res) => {
